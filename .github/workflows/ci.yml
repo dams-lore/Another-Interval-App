@@ -1,0 +1,36 @@
+name: CI
+
+# Tourne à chaque commit poussé sur une PR, et sur master après merge.
+# Le CD (Development Build iOS) reste géré par Codemagic sur push master : voir codemagic.yaml.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Tests unitaires + TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests unitaires (bloquant)
+        run: npx jest --ci
+
+      # Non bloquant tant que les erreurs existantes de master ne sont pas corrigées (ticket T-008).
+      # Retirer continue-on-error une fois T-008 mergé.
+      - name: TypeScript (non bloquant, voir T-008)
+        run: npx tsc --noEmit
+        continue-on-error: true

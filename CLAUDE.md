@@ -29,7 +29,10 @@ Toutes les commandes npm / npx / expo / git se lancent depuis ce dossier, jamais
 - Réponds en français, court, direct. Challenge ses idées quand c'est justifié.
 - **Une tâche = un ticket** (`docs/tickets/`), avec un critère de fin vérifiable sur l'iPhone. Utilise `/ticket`.
 - Travaille sur une branche `claude/<ticket>-<slug>`, jamais directement sur `master`.
-- Après chaque modif : `npx tsc --noEmit`, relis `git diff`, puis commit avec un message clair (`feat:`, `fix:`, `docs:`, `chore:`).
+- **Tout ajout passe par une Pull Request** vers `master` : jamais de commit ni de push direct sur `master`. La PR référence le ticket et n'est mergée qu'avec la CI au vert.
+- **Tout code nouveau ou modifié a des tests unitaires** (Jest, preset `jest-expo`) : fichiers `__tests__/<nom>.test.ts(x)` à côté du code testé. Logique métier (stores, utils, calculs de timer/score) testée en priorité ; un bug corrigé = un test qui le reproduit.
+- Après chaque modif : `npm test`, `npx tsc --noEmit`, relis `git diff`, puis commit avec un message clair (`feat:`, `fix:`, `docs:`, `chore:`, `test:`).
+- **CI** (`.github/workflows/ci.yml`, GitHub Actions) : tourne à chaque commit poussé sur une PR → `jest --ci` (bloquant) + `tsc --noEmit` (non bloquant jusqu'à T-008). **CD** : Codemagic construit le Development Build iOS au merge sur `master`.
 - Ne pousse pas sans qu'on te le demande. Dams pousse et merge via **GitHub Desktop** (l'auth git en terminal se bloque).
 - Termine toujours par : ce qui a changé (1-3 lignes) + la commande exacte pour tester + ce qu'il faut vérifier sur l'iPhone.
 - Tu ne peux pas valider sur l'iPhone toi-même : ne déclare jamais un ticket « terminé » avant le retour de Dams.

@@ -11,6 +11,8 @@
 | T-004 | Nettoyer les restes du template et imports interdits | P1 | à faire | — |
 | T-003 | Centraliser les tokens de design | P1 | à faire | choix des polices |
 | T-005 | Section « Mes scores » dans Profile | P2 | à faire | T-003 |
+| T-007 | Conventions PR + tests unitaires + CI | P1 | à tester | — |
+| T-008 | Corriger les erreurs `tsc` existantes et rendre l'étape CI bloquante | P1 | à faire | T-007 |
 
 ## Idées non encore découpées
 - Finir la refonte design Garmin (après T-001)

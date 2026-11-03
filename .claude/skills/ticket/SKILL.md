@@ -21,9 +21,11 @@ description: Prend un ticket du backlog docs/tickets/ (le prochain « à faire �
 ## 3. Réaliser
 - Changement minimal qui satisfait le critère de fin. Pas de refacto opportuniste hors périmètre : note-la comme nouveau ticket à la place.
 - Respecte les règles critiques de `CLAUDE.md` et `docs/learnings.md`.
+- Écris les tests unitaires en même temps que le code (`__tests__/<nom>.test.ts(x)`). Un fix = un test qui reproduit le bug avant correction.
 - Travail Figma → délègue à l'agent `design-figma`.
 
 ## 4. Vérifier
+- `npm test` doit passer (tous les tests, y compris les nouveaux).
 - `npx tsc --noEmit` doit passer (aucune nouvelle erreur).
 - Relis `git diff` en entier.
 - Délègue une relecture à l'agent `reviewer` avec : l'ID du ticket et la sortie de `git diff master...HEAD`. Corrige ce qu'il remonte de bloquant.
@@ -40,6 +42,7 @@ Changé : <1 à 3 lignes>
   1. GitHub Desktop → Current branch : claude/… → Push origin
   2. Set-Location C:\Users\DamienCOQUET\interval-app\interval-app-v2 ; npx expo start --tunnel --clear --port 8082
   3. Sur l'iPhone, vérifie : <critère de fin, en étapes concrètes>
-Si OK : GitHub Desktop → Create Pull Request → Merge, puis dis-moi « T-xxx ok ».
+Si OK : GitHub Desktop → Create Pull Request, attends la CI au vert sur GitHub, puis Merge et dis-moi « T-xxx ok ».
+Jamais de push direct sur master.
 ```
 Ne déclare jamais le ticket `fait` toi-même : seulement quand Dams confirme le test iPhone.
