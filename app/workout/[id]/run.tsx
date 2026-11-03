@@ -18,7 +18,7 @@ import { useSessionStore } from '../../../store/sessionStore';
 import { useRecordsStore } from '../../../store/recordsStore';
 import { useHeartRateStore } from '../../../store/heartRateStore';
 import { Step } from '../../../types/workout';
-import { BlockResult } from '../../../types/session';
+import { BlockResult, HrSample } from '../../../types/session';
 import { isMovingActivity } from '../../../utils/isMovingActivity';
 
 // ── SVG constants ──────────────────────────────────────────────────────────
@@ -91,6 +91,9 @@ export default function RunScreen() {
   const { setPendingSession } = useSessionStore();
   const { getPaceForLabel }   = useRecordsStore();
   const { bpm }               = useHeartRateStore();
+  const bpmRef                = useRef<number | null>(null);
+  useEffect(() => { bpmRef.current = bpm; }, [bpm]);
+  const hrSamplesRef          = useRef<HrSample[]>([]);
   const workout               = getById(id ?? '');
 
   const totalBlocks = workout?.steps.length ?? 0;
@@ -267,6 +270,7 @@ export default function RunScreen() {
       ended_at:         new Date().toISOString(),
       duration_s:       r.elapsed,
       block_results:    r.blockResults,
+      hrSamples:        hrSamplesRef.current.length > 0 ? [...hrSamplesRef.current] : undefined,
     });
     router.replace({ pathname: '/workout/[id]/summary', params: { id: id ?? '' } });
   }
@@ -325,6 +329,10 @@ export default function RunScreen() {
       const r = run.current;
       r.elapsed      += 1;
       r.blockElapsed += 1;
+
+      if (r.elapsed % 5 === 0 && bpmRef.current !== null) {
+        hrSamplesRef.current.push({ t: r.elapsed, bpm: bpmRef.current });
+      }
 
       if (workout?.cap_time != null) {
         const capRemaining = workout.cap_time - r.elapsed;
@@ -432,6 +440,7 @@ export default function RunScreen() {
             ended_at:         new Date().toISOString(),
             duration_s:       r.elapsed,
             block_results:    r.blockResults,
+            hrSamples:        hrSamplesRef.current.length > 0 ? [...hrSamplesRef.current] : undefined,
           });
           router.replace({ pathname: '/workout/[id]/summary', params: { id: id ?? '' } });
         },
