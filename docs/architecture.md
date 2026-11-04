@@ -250,10 +250,64 @@ protocol WearableLink: Sendable {
 10. **Observabilité + privacy manifest + soumission TestFlight externe.**
 11. **Apple Watch** (après acquisition d'une montre de test).
 
-## 16. Points à trancher
+## 16. Décisions et points à trancher
 
-- **Version minimale** : iOS 17 (base de cette spec) ou iOS 18 (API SwiftUI plus récentes, parc un peu réduit).
-- **Données de test de l'app Expo** : réimport ou abandon.
-- **Définition du premium** (tension rétention / limite de séances, `docs/product.md`) : nécessaire avant l'étape 6.
-- **EMOM** : confirmé pour la V1 native ?
-- **Déclenchement Codemagic** : à chaque merge ou sur tag.
+> Tableau vivant : quand un point est tranché, il passe dans « Décisions prises » avec sa date.
+> « Avant » = étape du § 15 qu'il bloque. Recommandations de Claude, à valider.
+
+### Décisions prises
+
+| Date | Décision | Par |
+|---|---|---|
+| 03/11/2026 | Construire dès maintenant la base prod (backend, comptes, sync), pas un V1 local minimal | Dams |
+| 03/11/2026 | Tout ajout passe par une PR, tests unitaires obligatoires, CI à chaque commit de PR (T-007) | Antoine |
+| 04/11/2026 | Réécriture **Swift native** (SwiftUI, Swift 6, iOS + watchOS) | Antoine |
+| 04/11/2026 | Backend **Supabase**, région UE (Francfort), 3 projets dev / staging / prod | Antoine |
+| 04/11/2026 | Projet Xcode **généré par Tuist** | Antoine |
+
+### Choix proposés par cette spec, validés par la relecture de la PR
+
+- Stockage local **GRDB (SQLite)** + outbox, dernier écrit gagne (tranche le point « cache local » de `docs/besoins-internet.md` § 5).
+- `TimerEngine` en package séparé, temps calculé par horodatages.
+- Garmin piloté par l'iPhone, **protocole JSON actuel conservé**.
+- Pas de client OpenAPI généré : `supabase-swift` dans le package Backend.
+- App native dans `apple/`, l'app Expo conservée jusqu'à la parité.
+
+### Points à trancher — produit (Dams)
+
+| Point | Options | Recommandation | Avant |
+|---|---|---|---|
+| **Définition du premium** | Limiter le nombre de séances sauvegardées en gratuit, ou laisser les sauvegardes illimitées et réserver import photo / montre / analytics avancées | Sauvegardes **illimitées en gratuit** (moteur de rétention, cf. tension dans `product.md`) ; premium = import photo, montres, analytics avancées | Étape 6 (règle du Domain dès l'étape 2) |
+| **Prix et essai** | ~4,99 €/mois, ~39,99 €/an ; essai gratuit ou non | Annuel mis en avant + essai 7 jours sur l'annuel | Étape 6 |
+| **Quota d'imports photo gratuits** | N imports au total, ou N par mois | **3 imports au total**, puis premium (le coût IA = la marge) | Étape 5 |
+| **EMOM en V1** | Oui / plus tard | Oui : le TimerEngine le gère pour un coût faible | Étape 2 |
+| **Formule de l'interval score** | Écart à l'allure cible, au temps cible par bloc, à la FC cible… | À spécifier avec 2-3 séances réelles comme exemples | Étape 8 |
+| **Intégrations en V1** | Apple Health, export FIT, upload Strava | **Apple Health en V1** ; FIT et Strava après le lancement | Étape 8 |
+| **IA au-delà de l'import** (coach, génération de WOD, debrief) | V1 / plus tard / jamais | **Hors V1** : protège le différenciateur et la marge | — |
+| **Communauté / classements** | V1 / plus tard | **Hors V1** : impose modération, signalement et blocage (contenu utilisateur) | — |
+| **Web checkout hors app** | Oui / non | **Non en V1** : à cadrer juridiquement d'abord | — |
+| **Données de test de l'app Expo** | Réimport dans le natif ou abandon | **Abandon** (aucun utilisateur externe) | Bascule (§ 13) |
+
+### Points à trancher — technique
+
+| Point | Options | Recommandation | Avant |
+|---|---|---|---|
+| **Version minimale** | iOS 17 / watchOS 10, ou iOS 18 / watchOS 11 | **iOS 18** : API SwiftUI plus récentes, parc iOS 17 devenu marginal fin 2026 (à vérifier sur les stats Apple) | Étape 1 |
+| **Exécution des tests Swift en CI** | Runners macOS GitHub Actions (minutes facturées nettement plus cher que Linux sur un repo privé) ou Codemagic | Vérifier si le repo est privé et le quota de minutes ; sinon tests sur Codemagic | Étape 1 |
+| **Déclenchement Codemagic** | À chaque merge sur `master`, ou sur tag | **Sur tag** (`v*`) → TestFlight ; économise les minutes | Étape 1 |
+| **Anti-abus de la session anonyme** | CAPTCHA invisible (Turnstile / hCaptcha, peu naturel dans une app native) ou App Attest vérifié par une Edge Function | **App Attest** + limite par IP | Étape 4 |
+| **Conservation des photos importées** | Pas de stockage, stockage temporaire, stockage permanent | **Pas de stockage** : la photo n'existe que le temps de l'appel IA (moins de données perso, privacy labels plus simples) | Étape 5 |
+| **Analytics** | PostHog UE (funnels, replays) ou TelemetryDeck (minimaliste, sans données perso) | **TelemetryDeck** : cohérent avec « pas de collecte agressive » | Étape 10 |
+| **Hébergement des liens de partage** (page web du score, liens universels) | Webflow (site existant), Supabase Storage, Cloudflare Pages | À décider avec le site vitrine | Étape 8 |
+| **FC Garmin enregistrée dans la session** | Ajouter un message `hr_sample` montre → iPhone dans l'app Monkey C | Oui, en même temps que WearableGarmin | Étape 9 |
+| **Apple Watch de test** | Achat d'occasion (Series 4+ / SE) | Seulement quand l'étape 11 approche | Étape 11 |
+
+### Points à trancher — process et légal
+
+| Point | Options | Recommandation | Qui | Avant |
+|---|---|---|---|---|
+| **Protection de `master`** | Ruleset GitHub (PR + CI obligatoires) | À activer ; ⚠️ non appliquée sur un repo privé en plan gratuit (GitHub Pro requis) | Dams (propriétaire) | Maintenant |
+| **Hook pre-commit** (tests avant chaque commit local) | Husky / script Git, ou CI seule | CI seule pour l'instant ; hook à réévaluer avec la stack Swift | Antoine | Étape 1 |
+| **Éditeur juridique de l'app** | Particulier, micro-entreprise, société | Nécessaire pour le compte développeur, les CGU, la facturation | Dams | Étape 10 |
+| **Politique de confidentialité, CGU, page support** | Rédaction interne ou générateur + relecture | Rédiger depuis le comportement réel de l'app (privacy labels cohérentes) | Dams | Étape 10 |
+| **Mise à jour de `CLAUDE.md`** (stack, commandes, conventions Swift) | À la validation de cette spec ou à la bascule | Section « App native » ajoutée dès l'étape 1 ; stack Expo retirée à la bascule | Antoine | Étape 1 |
