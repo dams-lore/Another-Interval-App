@@ -1,7 +1,7 @@
 # Architecture technique — app native iOS / watchOS
 
 > Statut : **proposition à valider** (PR T-009). Remplace, une fois validée, la stack Expo décrite dans `CLAUDE.md`.
-> Décisions du 04/11/2026 : **réécriture Swift native** ; **backend Supabase** (comparatif Supabase / Cloudflare : voir § 14).
+> Décisions du 04/11/2026 : **réécriture Swift native** ; **backend Supabase** (comparatif Supabase / Cloudflare : voir § 14) ; **projet Xcode généré par Tuist** (§ 2 bis).
 > Exigences fonctionnelles et contraintes Apple : `docs/besoins-internet.md`. Produit : `docs/product.md`.
 
 ## 1. Contexte et contraintes
@@ -18,6 +18,11 @@
 
 ```
 apple/                         (tout le natif ; l'app Expo reste à la racine jusqu'à la bascule, § 13)
+  Tuist.swift                  configuration Tuist
+  Workspace.swift              workspace : apps + packages
+  Tuist/
+    Package.swift              dépendances externes (supabase-swift, GRDB, RevenueCat…)
+    ProjectDescriptionHelpers/ fonctions partagées (créer un module, ses tests, ses réglages)
   Apps/
     iOSApp/                    cible app iOS (composition root)
     iOSWidgets/                Live Activity + widgets (ActivityKit / WidgetKit)
@@ -47,6 +52,18 @@ apple/                         (tout le natif ; l'app Expo reste à la racine ju
 supabase/                      migrations SQL, politiques RLS, Edge Functions, seed
 watch-garmin/                  app Connect IQ (inchangée)
 ```
+
+## 2 bis. Projet Xcode généré par Tuist
+
+- **Aucun `.xcodeproj` ni `.xcworkspace` n'est commité** (ajoutés au `.gitignore`). Ils sont générés par `tuist generate`, sur chaque Mac et en CI, à partir de manifestes Swift versionnés.
+- Pourquoi : supprimer les conflits de merge sur `project.pbxproj` (une PR par ticket, branches parallèles), rendre les changements de projet lisibles en PR, garantir des réglages identiques partout.
+- Chaque cible (`Apps/iOSApp`, `Apps/iOSWidgets`, `Apps/WatchApp`) a son `Project.swift`. Les modules sont déclarés via des **fonctions de `ProjectDescriptionHelpers`** (ex. `.feature("WorkoutRun")` crée la cible et sa cible de tests, avec Swift 6 strict) : tous les modules sont configurés de façon identique.
+- Les packages de `Packages/` restent des **packages SPM classiques** (`Package.swift`), testables seuls avec `swift test`, sans Tuist. Tuist sert à assembler les apps.
+- Dépendances externes déclarées dans `Tuist/Package.swift`, installées par `tuist install`.
+- **Version de Tuist figée** (`mise`, fichier `.mise.toml`) : même version sur tous les Mac et en CI.
+- `tuist graph` sert à vérifier visuellement la règle de dépendances (§ 3).
+- Uniquement les fonctions gratuites et locales de Tuist (pas de cache distant payant).
+- Commandes : `tuist install` puis `tuist generate` (ouvre Xcode) ; `tuist test` en CI.
 
 ## 3. Règle de dépendances
 
@@ -203,7 +220,8 @@ protocol WearableLink: Sendable {
 - **Tests** : Swift Testing dans chaque package (`swift test`). Priorité : TimerEngine, Domain, sync, mapping DTO. Tests UI XCTest seulement sur les parcours critiques (lancer une séance, terminer, retrouver dans l'historique).
 - **CI GitHub Actions** (runner macOS) à chaque commit de PR : `swift test` par package, build de l'app, lint (SwiftLint / swift-format), tests RLS Supabase. Bloquante avant merge.
 - **CD** : Codemagic → TestFlight au merge sur `master` (ou sur tag, pour économiser les minutes) ; migrations Supabase appliquées sur `staging` puis `prod`.
-- **Environnements** : `dev` / `staging` / `prod` via des configurations Xcode (`.xcconfig`) pointant chacune vers son projet Supabase.
+- **Environnements** : `dev` / `staging` / `prod` via des configurations Xcode (`.xcconfig`, déclarées dans les manifestes Tuist) pointant chacune vers son projet Supabase.
+- **Génération en CI** : `tuist install` puis `tuist generate --no-open` avant tout build ou test, sur GitHub Actions comme sur Codemagic.
 - **Observabilité** : Sentry (crashs), PostHog UE ou TelemetryDeck (analytics), déclarés dans le **privacy manifest**.
 - **Feature flags** : table `remote_config` Supabase (couper une feature IA coûteuse).
 - Pas de mise à jour OTA (EAS Update) en natif : chaque correctif repasse par la review Apple.
@@ -220,7 +238,7 @@ protocol WearableLink: Sendable {
 
 ## 15. Ordre de construction (un critère de fin vérifiable chacun)
 
-1. **Squelette** : monorepo, packages vides, Swift 6 strict, app iOS qui démarre, CI verte. → *L'app vide s'installe sur l'iPhone via TestFlight.*
+1. **Squelette** : monorepo, manifestes Tuist + helpers, packages vides, Swift 6 strict, app iOS qui démarre, CI verte. → *L'app vide s'installe sur l'iPhone via TestFlight.*
 2. **Domain + TimerEngine + TestSupport**, tests complets. → *Tous les formats passent en test, sans UI.*
 3. **Data local (GRDB)** + FeatureWorkoutEditor + FeatureWorkoutRun (audio, haptics, mode gym, Live Activity). → *Créer une séance, l'exécuter écran verrouillé avec la musique, la retrouver dans l'historique — hors ligne.*
 4. **Supabase** : projets, schéma, RLS, auth anonyme + Apple, sync. → *Une séance créée hors ligne est retrouvée après réinstallation.*
@@ -235,7 +253,6 @@ protocol WearableLink: Sendable {
 ## 16. Points à trancher
 
 - **Version minimale** : iOS 17 (base de cette spec) ou iOS 18 (API SwiftUI plus récentes, parc un peu réduit).
-- **Projet Xcode** : fichier `.xcodeproj` versionné, ou généré (Tuist / XcodeGen) pour éviter les conflits de merge. Recommandation : **Tuist**.
 - **Données de test de l'app Expo** : réimport ou abandon.
 - **Définition du premium** (tension rétention / limite de séances, `docs/product.md`) : nécessaire avant l'étape 6.
 - **EMOM** : confirmé pour la V1 native ?
