@@ -13,6 +13,7 @@
 | T-005 | Section « Mes scores » dans Profile | P2 | à faire | T-003 |
 | T-007 | Conventions PR + tests unitaires + CI | P1 | à tester | — |
 | T-008 | Corriger les erreurs `tsc` existantes et rendre l'étape CI bloquante | P1 | à faire | T-007 |
+| T-009 | Spec technique de l'app native (Swift + Supabase) | P0 | à tester | — |
 
 ## Idées non encore découpées
 - Finir la refonte design Garmin (après T-001)

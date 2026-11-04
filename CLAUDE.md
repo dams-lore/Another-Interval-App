@@ -55,6 +55,7 @@ Toutes les commandes npm / npx / expo / git se lancent depuis ce dossier, jamais
 ## Index docs/
 - `docs/product.md` — vision, cible, freemium, différenciateurs, interval score
 - `docs/design-system.md` — tokens Liquid Glass, polices, mode gym, règles Figma
+- `docs/architecture.md` — spec technique de l'app native (Swift + Supabase), à valider
 - `docs/roadmap.md` — phases, état réel, critères de fin
 - `docs/learnings.md` — toutes les règles apprises (« ne pas re-débattre »)
 - `docs/garmin.md` — app Connect IQ (Vivoactive 5), protocole iPhone ↔ montre
