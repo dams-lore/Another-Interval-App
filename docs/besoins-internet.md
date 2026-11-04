@@ -15,35 +15,37 @@
 
 ## 2. Tableau besoins / fonctions Internet
 
-| Domaine | Besoin → fonction | Standard marché / contrainte | Prio |
-|---|---|---|---|
-| Identité | Session anonyme au 1er lancement, convertible en compte | Zéro friction, identifiant pour quotas IA | V1 |
-| | Sign in with Apple + email (magic link) | Exigence 4.8 | V1 |
-| | Suppression de compte in-app | Guideline 5.1.1(v) | V1 |
-| | Export / suppression des données (RGPD) | Politique de confidentialité + lien support | V1 |
-| Données | Fonctionnement hors-ligne complet + resync | Salle de sport = réseau faible | V1 |
-| | Sauvegarde cloud (séances, PR, historique) | Standard Hevy/Strava ; protège le moteur de rétention | V1 |
-| | Restauration des achats | Exigé par Apple | V1 |
-| IA | Import photo via Claude Vision **par proxy serveur** | Jamais de clé API dans l'app (T-002) | V1 |
-| | Consentement IA tracé (version, date) | Guideline 5.1.2(i) | V1 |
-| | Quotas / anti-abus par utilisateur et appareil (App Attest) | Le coût par appel = la marge | V1 |
-| | Coach / génération de WOD / debrief IA | « Standard 2026 » mais dilue le différenciateur si prématuré | V3 |
-| Monétisation | Abonnement StoreKit 2 via RevenueCat | Annuel dominant en fitness | V1 |
-| | Entitlements côté serveur (webhook RevenueCat) | L'IA est protégée côté serveur | V1 |
-| | Paywall testable à distance (A/B) | Levier n°1 de conversion | V2 |
-| | Web checkout hors app | 41 % des apps du top tier ; à cadrer juridiquement | V3 |
-| Intégrations | Apple Health (écriture séances, FC) | Attention aux doublons Watch/Strava ; Development Build requis | V1.5 |
-| | Export FIT + copie texte du résultat | Déjà proposé par Hyro | V1.5 |
-| | Upload Strava (OAuth via serveur) | Hevy : sens unique app → Strava | V2 |
-| | Apple Watch / Garmin | Bluetooth via app compagnon, pas Internet | V3 |
-| Viralité | Partage de séance et d'« interval score » (carte image + lien universel + page web) | Levier d'acquisition organique | V2 |
-| | Classements / communauté | Backend + signalement/blocage (contenu utilisateur) | V3 |
-| Infra | Crash reporting (Sentry) + analytics UE (PostHog / TelemetryDeck) | À déclarer dans le manifeste | V1 |
-| | Mises à jour OTA (EAS Update) | Corriger sans repasser en review | V1 |
-| | Notifications push (rappels, streak) | Permission demandée en contexte | V2 |
-| | Remote config / feature flags | Couper une feature IA coûteuse | V2 |
-| | Privacy manifest, labels, CGU, page support | Rejet à l'upload sinon | V1 |
-| | HTTPS/ATS, jetons en Keychain | Base sécurité | V1 |
+> Liste exhaustive, volontairement non priorisée : l'arbitrage viendra ensuite.
+
+| Domaine | Besoin → fonction | Standard marché / contrainte |
+|---|---|---|
+| Identité | Session anonyme au 1er lancement, convertible en compte | Zéro friction, identifiant pour quotas IA |
+| | Sign in with Apple + email (magic link) | Exigence 4.8 |
+| | Suppression de compte in-app | Guideline 5.1.1(v) |
+| | Export / suppression des données (RGPD) | Politique de confidentialité + lien support |
+| Données | Fonctionnement hors-ligne complet + resync | Salle de sport = réseau faible |
+| | Sauvegarde cloud (séances, PR, historique) | Standard Hevy/Strava ; protège le moteur de rétention |
+| | Restauration des achats | Exigé par Apple |
+| IA | Import photo via Claude Vision **par proxy serveur** | Jamais de clé API dans l'app (T-002) |
+| | Consentement IA tracé (version, date) | Guideline 5.1.2(i) |
+| | Quotas / anti-abus par utilisateur et appareil (App Attest) | Le coût par appel = la marge |
+| | Coach / génération de WOD / debrief IA | « Standard 2026 » ; risque de diluer le différenciateur (import photo) |
+| Monétisation | Abonnement StoreKit 2 via RevenueCat | Annuel dominant en fitness |
+| | Entitlements côté serveur (webhook RevenueCat) | L'IA est protégée côté serveur |
+| | Paywall testable à distance (A/B) | Levier n°1 de conversion |
+| | Web checkout hors app | 41 % des apps du top tier ; à cadrer juridiquement |
+| Intégrations | Apple Health (écriture séances, FC) | Attention aux doublons Watch/Strava ; Development Build requis |
+| | Export FIT + copie texte du résultat | Déjà proposé par Hyro |
+| | Upload Strava (OAuth via serveur) | Hevy : sens unique app → Strava |
+| | Apple Watch / Garmin | Bluetooth via app compagnon, pas Internet |
+| Viralité | Partage de séance et d'« interval score » (carte image + lien universel + page web) | Levier d'acquisition organique |
+| | Classements / communauté | Backend + signalement/blocage (contenu utilisateur) |
+| Infra | Crash reporting (Sentry) + analytics UE (PostHog / TelemetryDeck) | À déclarer dans le manifeste |
+| | Mises à jour OTA (EAS Update) | Corriger sans repasser en review |
+| | Notifications push (rappels, streak) | Permission demandée en contexte |
+| | Remote config / feature flags | Couper une feature IA coûteuse |
+| | Privacy manifest, labels, CGU, page support | Rejet à l'upload sinon |
+| | HTTPS/ATS, jetons en Keychain | Base sécurité |
 
 ## 3. Architecture de base
 
