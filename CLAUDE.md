@@ -59,4 +59,5 @@ Toutes les commandes npm / npx / expo / git se lancent depuis ce dossier, jamais
 - `docs/learnings.md` — toutes les règles apprises (« ne pas re-débattre »)
 - `docs/garmin.md` — app Connect IQ (Vivoactive 5), protocole iPhone ↔ montre
 - `docs/integrations.md` — Anthropic API, Codemagic/EAS, Figma, Notion, Webflow
+- `docs/besoins-internet.md` — besoins Internet (comptes, sync, IA, abonnement), contraintes Apple, architecture backend
 - `docs/tickets/` — backlog, un fichier par ticket
