@@ -18,3 +18,71 @@ import Domain
         #expect(now >= before)
     }
 }
+
+@Suite struct WorkoutTests {
+    private func step(_ type: StepType = .time, value: Double = 30) -> Step {
+        Step(type: type, movement: "Burpees", value: value)
+    }
+
+    @Test func validWorkoutPasses() throws {
+        let workout = Workout(name: "Fran", format: .forTime, steps: [step(.reps, value: 21)])
+        try workout.validate()
+    }
+
+    @Test func emptyNameIsRejected() {
+        let workout = Workout(name: "  ", format: .forTime, steps: [step()])
+        #expect(throws: DomainError.self) { try workout.validate() }
+    }
+
+    @Test func workoutWithoutStepsIsRejected() {
+        let workout = Workout(name: "Vide", format: .forTime)
+        #expect(throws: DomainError.self) { try workout.validate() }
+    }
+
+    @Test func amrapRequiresPositiveCap() {
+        let bad = Workout(name: "Cindy", format: .amrap, steps: [step()], capTime: 0)
+        #expect(throws: DomainError.self) { try bad.validate() }
+        let good = Workout(name: "Cindy", format: .amrap, steps: [step()], capTime: 1200)
+        #expect((try? good.validate()) != nil)
+    }
+
+    @Test func emomRequiresRounds() {
+        let bad = Workout(name: "E", format: .emom, steps: [step()])
+        #expect(throws: DomainError.self) { try bad.validate() }
+        let good = Workout(name: "E", format: .emom, steps: [step()], rounds: 10)
+        #expect((try? good.validate()) != nil)
+    }
+
+    @Test func intervalsRequireATimedStep() {
+        let bad = Workout(name: "I", format: .intervals, steps: [step(.reps, value: 10)])
+        #expect(throws: DomainError.self) { try bad.validate() }
+        let good = Workout(name: "I", format: .intervals, steps: [step(.time, value: 30)])
+        #expect((try? good.validate()) != nil)
+    }
+
+    @Test func workoutRoundTripsThroughJSON() throws {
+        let workout = Workout(
+            name: "Murph", format: .forTime, sport: "crossfit",
+            steps: [step(.distance, value: 1600)], source: .photoImport
+        )
+        let data = try JSONEncoder().encode(workout)
+        let decoded = try JSONDecoder().decode(Workout.self, from: data)
+        #expect(decoded == workout)
+    }
+}
+
+@Suite struct PaceTests {
+    @Test func paceInSecondsPerKilometer() {
+        #expect(Pace.secondsPerKilometer(distanceMeters: 1000, duration: 300) == 300)
+        #expect(Pace.secondsPerKilometer(distanceMeters: 500, duration: 150) == 300)
+    }
+
+    @Test func speedInKilometersPerHour() {
+        #expect(Pace.kilometersPerHour(distanceMeters: 1000, duration: 360) == 10)
+    }
+
+    @Test func zeroInputsGiveNil() {
+        #expect(Pace.secondsPerKilometer(distanceMeters: 0, duration: 10) == nil)
+        #expect(Pace.kilometersPerHour(distanceMeters: 100, duration: 0) == nil)
+    }
+}
