@@ -67,15 +67,16 @@ public struct AnthropicImportClient: Sendable {
         Analyse cette image d'un workout fitness et extrais les informations. Réponds UNIQUEMENT avec un objet JSON valide, sans texte ni backticks, avec cette structure exacte:
         {
           "name": "nom du workout (si visible dans l'image, sinon 'WOD \(today)')",
-          "format": "for_time" | "amrap" | "intervals",
-          "cap_time": <secondes totales si AMRAP, sinon null>,
-          "rounds": <nombre de rounds si intervals, sinon null>,
+          "format": "for_time" | "amrap" | "intervals" | "emom",
+          "cap_time": <secondes totales si AMRAP ou time cap, sinon null>,
+          "rounds": <nombre de rounds / sets / intervalles si intervals ou emom, sinon null>,
+          "interval_seconds": <durée en secondes de chaque intervalle si emom, sinon null>,
           "steps": [
             {
               "type": "reps" | "distance" | "time",
               "movement": "nom du mouvement",
               "value": <nombre>,
-              "unit": "km" | "m" | "mi" | "s" | "min" | null,
+              "unit": "km" | "m" | "mi" | "s" | "min" | "cal" | null,
               "weight": <kg si précisé, sinon null>,
               "notes": "infos supplémentaires si utile, sinon null"
             }
@@ -84,10 +85,15 @@ public struct AnthropicImportClient: Sendable {
         Règles:
         - format "for_time" si c'est une séquence à finir le plus vite possible
         - format "amrap" si il y a un time cap et l'objectif est max rounds
+        - format "emom" pour « Every X:XX x N », « EMOM », « E2MOM », « every X minutes » : rounds = N, interval_seconds = durée de X en secondes (ex: « Every 5:00 x 6 sets » => rounds 6, interval_seconds 300). Les steps sont TOUT ce qu'il faut faire pendant UN intervalle, dans l'ordre
         - format "intervals" si il y a des répétitions de work/rest/rounds
         - Pour les reps: type="reps", pas d'unit
+        - Pour les calories (rameur, ski, bike): type="reps", unit="cal"
         - Pour les distances: type="distance", unit="km" ou "m" ou "mi"
         - Pour les temps: type="time", unit="s" ou "min"
+        - Si deux valeurs hommes/femmes sont données (ex: 20/16), prends la première pour value et indique « H/F : 20/16 » dans notes
+        - Si plusieurs niveaux sont proposés (RX, Scaled...), prends uniquement le niveau RX (ou le premier)
+        - Ignore les emojis, les titres décoratifs et le texte de présentation
         - Si un cap time est indiqué (ex: "12 min AMRAP"), cap_time = 720
         - Ne mets jamais de commentaires dans le JSON
         """

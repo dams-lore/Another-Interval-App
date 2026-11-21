@@ -48,6 +48,26 @@ import TestSupport
         #expect(workout.rounds == 8)
     }
 
+    @Test func mapsAnEveryFiveMinutesWorkout() throws {
+        let dto = WorkoutImportDTO(name: "EMF RX", format: "emom", rounds: 6, intervalSeconds: 300, steps: [
+            .init(type: "reps", movement: "Row", value: 20, unit: "cal"),
+            .init(type: "reps", movement: "Burpees Over Row", value: 15),
+        ])
+        let workout = try map(dto)
+        #expect(workout.format == .emom)
+        #expect(workout.rounds == 6)
+        #expect(workout.intervalSeconds == 300)
+        #expect(workout.steps.count == 2)
+    }
+
+    @Test func untimedIntervalsAreValid() throws {
+        let dto = WorkoutImportDTO(name: "Chipper", format: "intervals", rounds: 5, steps: [
+            .init(type: "distance", movement: "Run", value: 400, unit: "m"),
+            .init(type: "reps", movement: "Burpees", value: 15),
+        ])
+        try map(dto).validate()
+    }
+
     @Test func missingNameFallsBackToTheDefault() throws {
         let dto = WorkoutImportDTO(name: "  ", format: "for_time", steps: [.init(type: "reps", movement: "Squats", value: 10)])
         #expect(try map(dto).name == "WOD 21/11/2026")

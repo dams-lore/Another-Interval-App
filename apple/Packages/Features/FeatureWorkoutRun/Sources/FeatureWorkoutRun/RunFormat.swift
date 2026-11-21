@@ -1,4 +1,5 @@
 import Foundation
+import Domain
 
 /// Formatage des chronos (pur, testé).
 public enum RunFormat {
@@ -16,5 +17,26 @@ public enum RunFormat {
         let minutes = total / 60
         let secs = total % 60
         return String(format: "%02d:%02d", minutes, secs)
+    }
+}
+
+/// Texte d'une étape de séance (« 15 Burpees Over Row », « 20 cal Row », « 400 m Run »).
+public enum StepFormat {
+    public static func line(for step: Step) -> String {
+        var amount = number(step.value)
+        switch (step.type, step.unit) {
+        case (.reps, nil), (.reps, "reps"): break
+        case (.reps, let unit?): amount += " \(unit)"
+        case (_, let unit?): amount += " \(unit)"
+        case (_, nil): break
+        }
+        var text = "\(amount) \(step.movement)"
+        if let weight = step.weight { text += " (\(number(weight)) kg)" }
+        if let notes = step.notes, !notes.isEmpty { text += " — \(notes)" }
+        return text
+    }
+
+    private static func number(_ value: Double) -> String {
+        value == value.rounded() ? String(Int(value)) : String(value)
     }
 }

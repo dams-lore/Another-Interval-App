@@ -30,6 +30,7 @@ public enum WorkoutImportMapper {
 
         let trimmedName = dto.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let capTime = dto.capTime.flatMap { $0 > 0 ? $0 : nil }
+        let intervalSeconds = dto.intervalSeconds.flatMap { $0 > 0 ? $0 : nil }
         let rounds = dto.rounds.map { Int($0.rounded()) }.flatMap { $0 > 0 ? $0 : nil }
 
         return Workout(
@@ -38,6 +39,7 @@ public enum WorkoutImportMapper {
             steps: steps,
             capTime: capTime,
             rounds: rounds,
+            intervalSeconds: intervalSeconds,
             source: .photoImport,
             createdAt: now,
             updatedAt: now

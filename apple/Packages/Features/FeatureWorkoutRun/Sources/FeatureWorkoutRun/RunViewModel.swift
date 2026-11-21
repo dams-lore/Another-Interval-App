@@ -84,11 +84,7 @@ public final class RunViewModel {
     // MARK: - Valeurs affichées
 
     private var configuration: RunConfiguration { engine.configuration }
-    private var isCyclic: Bool { state.blockRemaining != nil }
-
-    private var timedSteps: [Step] {
-        workout.steps.filter { $0.type == .time && $0.value > 0 }
-    }
+    private var isCyclic: Bool { configuration.isCyclic }
 
     /// Chrono central : compte à rebours, temps du bloc (EMOM / fractionné) ou temps écoulé.
     public var mainTimerText: String {
@@ -97,6 +93,8 @@ public final class RunViewModel {
         case .countdown: return RunFormat.remaining(state.countdownRemaining)
         default:
             if let remaining = state.blockRemaining { return RunFormat.remaining(remaining) }
+            // Bloc manuel (reps, distance) : on compte le temps passé sur le bloc.
+            if isCyclic, let blockElapsed = state.blockElapsed { return RunFormat.elapsed(blockElapsed) }
             return RunFormat.elapsed(state.elapsed)
         }
     }
@@ -111,12 +109,48 @@ public final class RunViewModel {
 
     public var blockCounterText: String {
         guard isCyclic else { return "ROUND \(state.roundsCompleted + 1)" }
+        if configuration.format == .emom {
+            return "INTERVALLE \(state.roundIndex + 1) / \(configuration.rounds)"
+        }
         return "BLOCK \(state.blockIndex + 1) / \(configuration.cycle.count)"
     }
 
+    /// Étape en cours pour un fractionné (un bloc de la séance = une étape).
+    private var currentStep: Step? {
+        guard configuration.format == .intervals, !workout.steps.isEmpty else { return nil }
+        return workout.steps[state.blockIndex % workout.steps.count]
+    }
+
     public var blockTitle: String {
-        guard configuration.format == .intervals, !timedSteps.isEmpty else { return workout.name }
-        return timedSteps[state.blockIndex % timedSteps.count].movement
+        if configuration.format == .emom {
+            let seconds = configuration.cycle.first.flatMap { $0 } ?? 60
+            let total = Int(seconds.rounded())
+            return String(format: "Every %d:%02d", total / 60, total % 60)
+        }
+        return currentStep?.movement ?? workout.name
+    }
+
+    /// Lignes à afficher sous le titre : tout ce qu'il y a à faire pendant l'intervalle (EMOM),
+    /// ou le détail du bloc courant (fractionné).
+    public var blockLines: [String] {
+        if configuration.format == .emom { return workout.steps.map(StepFormat.line(for:)) }
+        if let step = currentStep, step.type != .time { return [StepFormat.line(for: step)] }
+        return []
+    }
+
+    /// Vrai si le bloc courant n'a pas de durée : l'athlète le termine lui-même.
+    public var currentBlockIsManual: Bool {
+        isCyclic && configuration.cycle[state.blockIndex % configuration.cycle.count] == nil
+    }
+
+    public var advanceLabel: String {
+        if !isCyclic { return "＋  Tour" }
+        return currentBlockIsManual ? "✓  Bloc terminé" : "⏭  Skip"
+    }
+
+    /// Bouton principal : bloc suivant (EMOM, fractionné) ou +1 tour (For Time, AMRAP).
+    public func advance() {
+        if isCyclic { skip() } else { completeRound() }
     }
 
     /// Avancement du bloc courant, de 0 à 1 (`nil` si le format n'a pas de blocs).

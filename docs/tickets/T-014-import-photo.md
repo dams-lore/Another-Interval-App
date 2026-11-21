@@ -18,6 +18,11 @@ Différenciateur n°1 du produit : photographier le tableau / la feuille du coac
 - `Features/FeaturePhotoImport` : `PhotoImportViewModel`, `PhotoImportView` (PhotosPicker, UI simple ; finition d'après Figma « Import 1/2/3 » plus tard).
 - `apple/Apps/iOSApp` : bouton « Importer une séance par photo », config xcconfig.
 
+## Retour du premier test (21/11/2026)
+- Photo « EMF RX - DARK ZONE » (« Every 5:00 x 6 sets », 4 tâches : rameur en calories, burpees) refusée : « un fractionné demande au moins un bloc chronométré ».
+- Corrigé : (1) format **Every X × N / EMOM** avec durée d'intervalle (`Workout.intervalSeconds`) et liste des tâches de l'intervalle ; (2) fractionné avec **blocs manuels** (reps, distance : bouton « Bloc terminé », chrono qui compte le temps du bloc) ; (3) prompt IA enrichi (calories, H/F 20/16, niveau RX, « Every X »).
+- La séance est aussi dans la liste de démo (sans IA).
+
 ## Critère de fin
 - [ ] `swift test` vert (Backend, DataLayer, FeaturePhotoImport).
 - [ ] Dans le simulateur (photo glissée dans l'app Photos) : photo → séance affichée → « Lancer la séance » ouvre l'écran de séance avec les bons blocs.

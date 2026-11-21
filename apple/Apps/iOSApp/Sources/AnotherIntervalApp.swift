@@ -135,5 +135,19 @@ enum DemoWorkout {
         capTime: 600
     )
 
-    static let all: [Workout] = [breakfastClub, emom, amrap, fran]
+    /// Séance réelle de Dams (« Every 5:00 x 6 sets ») : intervalles de 5 minutes, tâches à enchaîner dans chacun.
+    static let darkZone = Workout(
+        name: "EMF RX - DARK ZONE Burpees And Row",
+        format: .emom,
+        steps: [
+            Step(type: .reps, movement: "Row", value: 20, unit: "cal", notes: "H/F : 20/16"),
+            Step(type: .reps, movement: "Burpees Over Row", value: 15),
+            Step(type: .reps, movement: "Row", value: 20, unit: "cal", notes: "H/F : 20/16"),
+            Step(type: .reps, movement: "Burpees Over Row", value: 15),
+        ],
+        rounds: 6,
+        intervalSeconds: 300
+    )
+
+    static let all: [Workout] = [darkZone, breakfastClub, emom, amrap, fran]
 }

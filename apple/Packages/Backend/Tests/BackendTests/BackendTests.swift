@@ -31,6 +31,22 @@ import Backend
         #expect(text.contains("21/11/2026"))
     }
 
+    @Test func promptKnowsEveryXFormats() {
+        let prompt = AnthropicImportClient.prompt(today: "21/11/2026")
+        #expect(prompt.contains("interval_seconds"))
+        #expect(prompt.contains("Every 5:00 x 6 sets"))
+        #expect(prompt.contains("calories"))
+    }
+
+    @Test func parsesAnEveryXWorkout() throws {
+        let emom = #"{"name":"EMF RX - DARK ZONE","format":"emom","cap_time":null,"rounds":6,"interval_seconds":300,"steps":[{"type":"reps","movement":"Row","value":20,"unit":"cal","weight":null,"notes":"H/F : 20/16"},{"type":"reps","movement":"Burpees Over Row","value":15,"unit":null,"weight":null,"notes":null}]}"#
+        let dto = try AnthropicImportClient.parseResponse(envelope(text: emom), status: 200)
+        #expect(dto.format == "emom")
+        #expect(dto.rounds == 6)
+        #expect(dto.intervalSeconds == 300)
+        #expect(dto.steps.count == 2)
+    }
+
     @Test func missingKeyIsRejectedBeforeAnyNetworkCall() {
         let client = AnthropicImportClient(apiKey: "")
         #expect(throws: ImportError.missingAPIKey) {

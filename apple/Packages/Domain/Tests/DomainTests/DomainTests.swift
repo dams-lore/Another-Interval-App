@@ -53,11 +53,17 @@ import Domain
         #expect((try? good.validate()) != nil)
     }
 
-    @Test func intervalsRequireATimedStep() {
-        let bad = Workout(name: "I", format: .intervals, steps: [step(.reps, value: 10)])
-        #expect(throws: DomainError.self) { try bad.validate() }
-        let good = Workout(name: "I", format: .intervals, steps: [step(.time, value: 30)])
-        #expect((try? good.validate()) != nil)
+    @Test func intervalsAcceptUntimedBlocks() {
+        let repsOnly = Workout(name: "I", format: .intervals, steps: [step(.reps, value: 10)])
+        #expect((try? repsOnly.validate()) != nil)
+        let timed = Workout(name: "I", format: .intervals, steps: [step(.time, value: 30)])
+        #expect((try? timed.validate()) != nil)
+    }
+
+    @Test func intervalSecondsSurvivesJSON() throws {
+        let workout = Workout(name: "Every 5:00", format: .emom, steps: [step(.reps, value: 15)], rounds: 6, intervalSeconds: 300)
+        let decoded = try JSONDecoder().decode(Workout.self, from: JSONEncoder().encode(workout))
+        #expect(decoded.intervalSeconds == 300)
     }
 
     @Test func workoutRoundTripsThroughJSON() throws {

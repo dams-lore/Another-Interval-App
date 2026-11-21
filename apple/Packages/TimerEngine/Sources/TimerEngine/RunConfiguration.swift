@@ -2,18 +2,19 @@ import Foundation
 import Domain
 
 /// Paramètres d'exécution d'une séance, indépendants de l'UI.
-/// - `cycle` : durée de chaque bloc d'un tour (EMOM : un seul bloc de `interval`).
+/// - `cycle` : un élément par bloc d'un tour. `nil` = bloc **manuel** (reps, distance : l'athlète le termine
+///   avec « Bloc terminé »), sinon durée en secondes. EMOM : un seul bloc de `interval`.
 public struct RunConfiguration: Sendable, Equatable {
     public var format: WorkoutFormat
     public var countdown: TimeInterval
-    public var cycle: [TimeInterval]
+    public var cycle: [TimeInterval?]
     public var rounds: Int
     public var capTime: TimeInterval?
 
     public init(
         format: WorkoutFormat,
         countdown: TimeInterval = 10,
-        cycle: [TimeInterval] = [],
+        cycle: [TimeInterval?] = [],
         rounds: Int = 1,
         capTime: TimeInterval? = nil
     ) {
@@ -36,7 +37,7 @@ public struct RunConfiguration: Sendable, Equatable {
         RunConfiguration(format: .emom, countdown: countdown, cycle: [interval], rounds: rounds)
     }
 
-    public static func intervals(cycle: [TimeInterval], rounds: Int, countdown: TimeInterval = 10) -> RunConfiguration {
+    public static func intervals(cycle: [TimeInterval?], rounds: Int, countdown: TimeInterval = 10) -> RunConfiguration {
         RunConfiguration(format: .intervals, countdown: countdown, cycle: cycle, rounds: rounds)
     }
 
@@ -48,21 +49,27 @@ public struct RunConfiguration: Sendable, Equatable {
         case .amrap:
             self.init(format: .amrap, countdown: countdown, capTime: workout.capTime)
         case .emom:
-            self.init(format: .emom, countdown: countdown, cycle: [60], rounds: workout.rounds ?? 1)
+            let interval = (workout.intervalSeconds ?? 60) > 0 ? (workout.intervalSeconds ?? 60) : 60
+            self.init(format: .emom, countdown: countdown, cycle: [interval], rounds: workout.rounds ?? 1)
         case .intervals:
-            let cycle = workout.steps.filter { $0.type == .time && $0.value > 0 }.map(\.value)
+            // Chaque bloc de la séance devient un bloc du cycle : chronométré s'il a une durée, manuel sinon.
+            let cycle: [TimeInterval?] = workout.steps.map { $0.type == .time && $0.value > 0 ? $0.value : nil }
             self.init(format: .intervals, countdown: countdown, cycle: cycle, rounds: workout.rounds ?? 1)
         }
     }
 
-    var cycleLength: TimeInterval { cycle.reduce(0, +) }
+    /// Somme des blocs chronométrés d'un tour.
+    var cycleLength: TimeInterval { cycle.compactMap { $0 }.reduce(0, +) }
 
-    /// Vrai pour les formats découpés en blocs de durée fixe (EMOM, fractionné).
-    var isCyclic: Bool {
-        (format == .emom || format == .intervals) && cycleLength > 0
+    var hasManualBlock: Bool { cycle.contains { $0 == nil } }
+
+    /// Vrai pour les formats découpés en blocs (EMOM, fractionné).
+    public var isCyclic: Bool {
+        (format == .emom || format == .intervals) && !cycle.isEmpty
     }
 
-    /// Durée totale de la partie chronométrée (hors compte à rebours). `nil` = pas de limite.
+    /// Durée totale de la partie chronométrée (hors compte à rebours). `nil` = pas de limite
+    /// (For Time sans cap, ou séance avec au moins un bloc manuel).
     public var totalDuration: TimeInterval? {
         switch format {
         case .forTime:
@@ -70,7 +77,8 @@ public struct RunConfiguration: Sendable, Equatable {
         case .amrap:
             return capTime ?? 0
         case .emom, .intervals:
-            return isCyclic ? cycleLength * Double(rounds) : 0
+            guard isCyclic else { return 0 }
+            return hasManualBlock ? nil : cycleLength * Double(rounds)
         }
     }
 }

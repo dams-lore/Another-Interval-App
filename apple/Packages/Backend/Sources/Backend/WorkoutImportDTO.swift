@@ -24,18 +24,21 @@ public struct WorkoutImportDTO: Codable, Sendable, Equatable {
     public var format: String
     public var capTime: Double?
     public var rounds: Double?
+    public var intervalSeconds: Double?
     public var steps: [StepDTO]
 
     enum CodingKeys: String, CodingKey {
         case name, format, rounds, steps
         case capTime = "cap_time"
+        case intervalSeconds = "interval_seconds"
     }
 
-    public init(name: String? = nil, format: String, capTime: Double? = nil, rounds: Double? = nil, steps: [StepDTO]) {
+    public init(name: String? = nil, format: String, capTime: Double? = nil, rounds: Double? = nil, intervalSeconds: Double? = nil, steps: [StepDTO]) {
         self.name = name
         self.format = format
         self.capTime = capTime
         self.rounds = rounds
+        self.intervalSeconds = intervalSeconds
         self.steps = steps
     }
 }

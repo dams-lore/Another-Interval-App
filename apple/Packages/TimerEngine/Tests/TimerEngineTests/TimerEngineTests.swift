@@ -178,21 +178,41 @@ private func near(_ value: TimeInterval?, _ expected: TimeInterval) -> Bool {
 }
 
 @Suite struct ConfigurationTests {
-    @Test func intervalsConfigurationFromWorkout() {
+    @Test func intervalsConfigurationKeepsUntimedBlocksAsManual() {
         let workout = Workout(
             name: "Tabata", format: .intervals,
             steps: [
                 Step(type: .time, movement: "Work", value: 20),
                 Step(type: .time, movement: "Rest", value: 10),
-                Step(type: .reps, movement: "Ignoré", value: 5),
+                Step(type: .reps, movement: "Burpees", value: 5),
             ],
             rounds: 8
         )
         let config = RunConfiguration(workout: workout, countdown: 5)
-        #expect(config.cycle == [20, 10])
+        #expect(config.cycle == [20, 10, nil])
         #expect(config.rounds == 8)
-        #expect(config.totalDuration == 240)
+        #expect(config.totalDuration == nil)   // un bloc manuel : pas de durée totale connue
         #expect(config.countdown == 5)
+    }
+
+    @Test func fullyTimedIntervalsHaveATotalDuration() {
+        let workout = Workout(
+            name: "Tabata", format: .intervals,
+            steps: [Step(type: .time, movement: "Work", value: 20), Step(type: .time, movement: "Rest", value: 10)],
+            rounds: 8
+        )
+        #expect(RunConfiguration(workout: workout).totalDuration == 240)
+    }
+
+    @Test func emomUsesTheWorkoutInterval() {
+        let workout = Workout(
+            name: "Every 5:00", format: .emom,
+            steps: [Step(type: .reps, movement: "Row", value: 20)],
+            rounds: 6, intervalSeconds: 300
+        )
+        let config = RunConfiguration(workout: workout)
+        #expect(config.cycle == [300])
+        #expect(config.totalDuration == 1800)
     }
 
     @Test func emomConfigurationFromWorkout() {
@@ -234,7 +254,7 @@ private func near(_ value: TimeInterval?, _ expected: TimeInterval) -> Bool {
 
     @Test func skipEmitsBlockEnded() {
         let config = RunConfiguration.intervals(cycle: [30, 10], rounds: 1, countdown: 0)
-        let events = collect(config, until: 15, skipAt: 5)
+        let events = collect(config, until: 14.5, skipAt: 5)
         #expect(events == [.go, .blockEnded])
     }
 
@@ -255,5 +275,75 @@ private func near(_ value: TimeInterval?, _ expected: TimeInterval) -> Bool {
         _ = detector.events(for: engine.state(at: at(1)))
         engine.pause(at: at(2))
         #expect(detector.events(for: engine.state(at: at(3))).isEmpty)
+    }
+}
+
+@Suite struct ManualBlocksTests {
+    /// Cycle : un bloc manuel (reps) puis un bloc chronométré de 10 s, 2 tours.
+    private func makeEngine() -> TimerEngine {
+        var engine = TimerEngine(configuration: .intervals(cycle: [nil, 10], rounds: 2, countdown: 0))
+        engine.start(at: at(0))
+        return engine
+    }
+
+    @Test func manualBlockHasNoRemainingTimeAndCountsUp() {
+        let engine = makeEngine()
+        let state = engine.state(at: at(5))
+        #expect(state.blockIndex == 0)
+        #expect(state.blockRemaining == nil)
+        #expect(near(state.blockElapsed, 5))
+        #expect(state.totalRemaining == nil)
+    }
+
+    @Test func manualBlockNeverEndsByItself() {
+        let engine = makeEngine()
+        let state = engine.state(at: at(3_000))
+        #expect(state.phase == .running)
+        #expect(state.blockIndex == 0)
+    }
+
+    @Test func skipEndsTheManualBlockThenTheTimedOneRunsOut() {
+        var engine = makeEngine()
+        engine.skip(at: at(8))
+        let timed = engine.state(at: at(8))
+        #expect(timed.blockIndex == 1)
+        #expect(near(timed.blockRemaining, 10))
+        let secondRound = engine.state(at: at(18))
+        #expect(secondRound.roundIndex == 1)
+        #expect(secondRound.blockIndex == 0)
+        #expect(near(secondRound.blockElapsed, 0))
+    }
+
+    @Test func sessionFinishesWhenTheLastBlockIsDone() {
+        var engine = makeEngine()
+        engine.skip(at: at(8))        // bloc manuel 1
+        // le bloc chronométré se termine à 18 s ; le bloc manuel du tour 2 est terminé à 25 s
+        engine.skip(at: at(25))
+        let state = engine.state(at: at(25))
+        #expect(state.blockIndex == 1)
+        #expect(engine.state(at: at(35)).phase == .finished)
+        #expect(engine.state(at: at(35)).roundsCompleted == 2)
+    }
+
+    @Test func pauseDoesNotCountInManualBlockTime() {
+        var engine = makeEngine()
+        engine.pause(at: at(5))
+        engine.resume(at: at(65))
+        #expect(near(engine.state(at: at(70)).blockElapsed, 10))
+    }
+}
+
+@Suite struct ManualBlockEventsTests {
+    @Test func manualBlocksNeverWarnButSkipEmitsBlockEnded() {
+        var engine = TimerEngine(configuration: .intervals(cycle: [nil, nil], rounds: 1, countdown: 0))
+        var detector = RunEventDetector()
+        engine.start(at: at(0))
+        var events = detector.events(for: engine.state(at: at(0)))
+        events += detector.events(for: engine.state(at: at(30)))
+        engine.skip(at: at(31))
+        events += detector.events(for: engine.state(at: at(31)))
+        engine.skip(at: at(40))
+        events += detector.events(for: engine.state(at: at(40)))
+        #expect(events == [.go, .blockEnded, .sessionFinished])
     }
 }

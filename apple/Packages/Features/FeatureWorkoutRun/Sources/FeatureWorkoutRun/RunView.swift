@@ -111,6 +111,11 @@ public struct RunView: View {
                     .font(.system(size: 44, weight: .heavy)).tracking(-2)
                     .foregroundStyle(DS.Colors.textPrimary)
                     .minimumScaleFactor(0.6).lineLimit(2)
+                ForEach(viewModel.blockLines, id: \.self) { line in
+                    Text(line)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(DS.Colors.textSecondary)
+                }
             }
             .padding(.horizontal, 28).padding(.top, 28)
 
@@ -163,6 +168,11 @@ public struct RunView: View {
                 Text(viewModel.blockTitle)
                     .font(.system(size: 32, weight: .heavy))
                     .foregroundStyle(Color.black)
+                ForEach(viewModel.blockLines, id: \.self) { line in
+                    Text(line)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.black.opacity(0.6))
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 28)
@@ -202,9 +212,7 @@ public struct RunView: View {
                 bigButton("Terminé", gym: gym) { onClose() }
             } else {
                 HStack(spacing: 10) {
-                    bigButton(viewModel.overallProgress != nil ? "⏭  Skip" : "＋  Tour", gym: gym) {
-                        if viewModel.overallProgress != nil { viewModel.skip() } else { viewModel.completeRound() }
-                    }
+                    bigButton(viewModel.advanceLabel, gym: gym) { viewModel.advance() }
                     pauseButton(gym: gym)
                 }
             }

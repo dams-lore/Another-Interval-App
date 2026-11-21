@@ -14,6 +14,8 @@ public struct Workout: Sendable, Codable, Equatable, Identifiable {
     public var steps: [Step]
     public var capTime: TimeInterval?
     public var rounds: Int?
+    /// Durée de chaque intervalle pour « Every X × N » / EMOM (60 s si absent).
+    public var intervalSeconds: TimeInterval?
     public var source: WorkoutSource
     public var createdAt: Date
     public var updatedAt: Date
@@ -27,6 +29,7 @@ public struct Workout: Sendable, Codable, Equatable, Identifiable {
         steps: [Step] = [],
         capTime: TimeInterval? = nil,
         rounds: Int? = nil,
+        intervalSeconds: TimeInterval? = nil,
         source: WorkoutSource = .manual,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
@@ -39,6 +42,7 @@ public struct Workout: Sendable, Codable, Equatable, Identifiable {
         self.steps = steps
         self.capTime = capTime
         self.rounds = rounds
+        self.intervalSeconds = intervalSeconds
         self.source = source
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -65,9 +69,8 @@ public struct Workout: Sendable, Codable, Equatable, Identifiable {
                 throw DomainError.validation("Un EMOM demande un nombre de minutes positif.")
             }
         case .intervals:
-            guard steps.contains(where: { $0.type == .time && $0.value > 0 }) else {
-                throw DomainError.validation("Un fractionné demande au moins un bloc chronométré.")
-            }
+            // Blocs chronométrés (travail / repos) ou manuels (reps, distance) : tout est accepté.
+            break
         }
     }
 }

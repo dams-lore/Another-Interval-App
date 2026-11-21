@@ -92,6 +92,79 @@ import TestSupport
     }
 }
 
+@Suite struct StepFormatTests {
+    @Test func formatsRepsCaloriesAndDistances() {
+        #expect(StepFormat.line(for: Step(type: .reps, movement: "Burpees Over Row", value: 15)) == "15 Burpees Over Row")
+        #expect(StepFormat.line(for: Step(type: .reps, movement: "Row", value: 20, unit: "cal")) == "20 cal Row")
+        #expect(StepFormat.line(for: Step(type: .distance, movement: "Run", value: 400, unit: "m")) == "400 m Run")
+        #expect(StepFormat.line(for: Step(type: .reps, movement: "Thrusters", value: 21, weight: 43)) == "21 Thrusters (43 kg)")
+    }
+}
+
+@MainActor @Suite struct EveryXRunTests {
+    private func workout() -> Workout {
+        Workout(
+            name: "EMF RX - DARK ZONE", format: .emom,
+            steps: [
+                Step(type: .reps, movement: "Row", value: 20, unit: "cal"),
+                Step(type: .reps, movement: "Burpees Over Row", value: 15),
+            ],
+            rounds: 6, intervalSeconds: 300
+        )
+    }
+
+    @Test func showsTheTasksOfTheInterval() {
+        let clock = TestClock()
+        let model = RunViewModel(workout: workout(), clock: clock, countdown: 0)
+        model.start()
+        clock.advance(by: 60)
+        model.refresh()
+        #expect(model.blockTitle == "Every 5:00")
+        #expect(model.blockCounterText == "INTERVALLE 1 / 6")
+        #expect(model.blockLines == ["20 cal Row", "15 Burpees Over Row"])
+        #expect(model.mainTimerText == "04:00")
+    }
+
+    @Test func nextIntervalStartsAutomatically() {
+        let clock = TestClock()
+        let model = RunViewModel(workout: workout(), clock: clock, countdown: 0)
+        model.start()
+        clock.advance(by: 301)
+        model.refresh()
+        #expect(model.blockCounterText == "INTERVALLE 2 / 6")
+    }
+}
+
+@MainActor @Suite struct ManualBlocksRunTests {
+    private func workout() -> Workout {
+        Workout(
+            name: "Chipper", format: .intervals,
+            steps: [
+                Step(type: .distance, movement: "Run", value: 400, unit: "m"),
+                Step(type: .reps, movement: "Burpees", value: 15),
+            ],
+            rounds: 2
+        )
+    }
+
+    @Test func manualBlocksCountUpAndAdvanceOnDemand() {
+        let clock = TestClock()
+        let model = RunViewModel(workout: workout(), clock: clock, countdown: 0)
+        model.start()
+        clock.advance(by: 65)
+        model.refresh()
+        #expect(model.blockTitle == "Run")
+        #expect(model.mainTimerText == "01:05")
+        #expect(model.advanceLabel == "✓  Bloc terminé")
+        #expect(model.blockLines == ["400 m Run"])
+        model.advance()
+        #expect(model.blockTitle == "Burpees")
+        #expect(model.mainTimerText == "00:00")
+        #expect(model.overallProgress?.done == 1)
+        #expect(model.overallProgress?.total == 4)
+    }
+}
+
 @MainActor @Suite struct RunGuidanceTests {
     private func makeModel(_ clock: TestClock, _ guidance: RecordingGuidanceOutput) -> RunViewModel {
         let workout = Workout(

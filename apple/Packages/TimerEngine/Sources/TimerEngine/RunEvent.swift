@@ -38,7 +38,7 @@ public struct RunEventDetector: Sendable {
             if !hasStarted {
                 hasStarted = true
                 events.append(.go)
-            } else if let previous, state.blockRemaining != nil,
+            } else if let previous, state.isBlockBased,
                       previous.roundIndex != state.roundIndex || previous.blockIndex != state.blockIndex {
                 events.append(.blockEnded)
             }
@@ -55,15 +55,22 @@ public struct RunEventDetector: Sendable {
     }
 
     private mutating func tenSecondsWarning(for state: RunState) -> RunEvent? {
-        let isCyclic = state.blockRemaining != nil
-        let remaining = state.blockRemaining ?? state.totalRemaining
-        let length: TimeInterval = isCyclic
-            ? (state.blockElapsed ?? 0) + (state.blockRemaining ?? 0)
-            : state.elapsed + (state.totalRemaining ?? 0)
-        guard let remaining, remaining > 0, remaining <= 10, length > 10 else { return nil }
-
-        let key = isCyclic ? state.roundIndex * 10_000 + state.blockIndex : -1
-        guard warnedKey != key else { return nil }
+        let remaining: TimeInterval
+        let length: TimeInterval
+        let key: Int
+        if state.isBlockBased {
+            // Les blocs manuels (reps, distance) n'ont pas de fin chronométrée : pas d'alerte.
+            guard let blockRemaining = state.blockRemaining else { return nil }
+            remaining = blockRemaining
+            length = (state.blockElapsed ?? 0) + blockRemaining
+            key = state.roundIndex * 10_000 + state.blockIndex
+        } else {
+            guard let totalRemaining = state.totalRemaining else { return nil }
+            remaining = totalRemaining
+            length = state.elapsed + totalRemaining
+            key = -1
+        }
+        guard remaining > 0, remaining <= 10, length > 10, warnedKey != key else { return nil }
         warnedKey = key
         return .tenSecondsLeft
     }
