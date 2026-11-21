@@ -86,3 +86,11 @@ import Domain
         #expect(Pace.kilometersPerHour(distanceMeters: 100, duration: 0) == nil)
     }
 }
+
+@Suite struct GuidanceCueTests {
+    @Test func cuesAreComparable() {
+        #expect(GuidanceCue.countdownTick(3) == .countdownTick(3))
+        #expect(GuidanceCue.countdownTick(3) != .countdownTick(2))
+        #expect(GuidanceCue.go != .blockEnd)
+    }
+}

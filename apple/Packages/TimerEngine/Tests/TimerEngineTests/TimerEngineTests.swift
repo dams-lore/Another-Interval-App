@@ -200,3 +200,60 @@ private func near(_ value: TimeInterval?, _ expected: TimeInterval) -> Bool {
         #expect(RunConfiguration(workout: workout).totalDuration == 720)
     }
 }
+
+@Suite struct RunEventDetectorTests {
+    /// Fait avancer le moteur par pas de 0,5 s et collecte tous les événements.
+    private func collect(_ configuration: RunConfiguration, until end: TimeInterval, skipAt: TimeInterval? = nil) -> [RunEvent] {
+        var engine = TimerEngine(configuration: configuration)
+        var detector = RunEventDetector()
+        var events: [RunEvent] = []
+        engine.start(at: at(0))
+        var t: TimeInterval = 0
+        while t <= end {
+            if let skipAt, t == skipAt { engine.skip(at: at(t)) }
+            events += detector.events(for: engine.state(at: at(t)))
+            t += 0.5
+        }
+        return events
+    }
+
+    @Test func intervalsEmitEachEventOnce() {
+        let config = RunConfiguration.intervals(cycle: [30, 10], rounds: 2, countdown: 5)
+        let events = collect(config, until: 90)
+        #expect(events == [
+            .countdownTick(3), .countdownTick(2), .countdownTick(1),
+            .go,
+            .tenSecondsLeft,      // 10 s avant la fin du bloc de 30 s
+            .blockEnded,          // début du repos de 10 s : pas d'alerte (bloc trop court)
+            .blockEnded,          // tour 2
+            .tenSecondsLeft,
+            .blockEnded,
+            .sessionFinished,
+        ])
+    }
+
+    @Test func skipEmitsBlockEnded() {
+        let config = RunConfiguration.intervals(cycle: [30, 10], rounds: 1, countdown: 0)
+        let events = collect(config, until: 15, skipAt: 5)
+        #expect(events == [.go, .blockEnded])
+    }
+
+    @Test func amrapWarnsTenSecondsBeforeCapAndFinishes() {
+        let events = collect(.amrap(duration: 60, countdown: 0), until: 65)
+        #expect(events == [.go, .tenSecondsLeft, .sessionFinished])
+    }
+
+    @Test func forTimeWithoutCapNeverWarns() {
+        let events = collect(.forTime(countdown: 0), until: 120)
+        #expect(events == [.go])
+    }
+
+    @Test func pausedStateEmitsNothing() {
+        var engine = TimerEngine(configuration: .forTime(countdown: 0))
+        var detector = RunEventDetector()
+        engine.start(at: at(0))
+        _ = detector.events(for: engine.state(at: at(1)))
+        engine.pause(at: at(2))
+        #expect(detector.events(for: engine.state(at: at(3))).isEmpty)
+    }
+}

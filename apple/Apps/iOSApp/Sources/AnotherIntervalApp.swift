@@ -1,6 +1,7 @@
 import SwiftUI
 import Domain
 import FeatureWorkoutRun
+import Platform
 
 @main
 struct AnotherIntervalApp: App {
@@ -43,7 +44,7 @@ struct RunHost: View {
     let onClose: () -> Void
 
     init(workout: Workout, onClose: @escaping () -> Void) {
-        _viewModel = State(initialValue: RunViewModel(workout: workout))
+        _viewModel = State(initialValue: RunViewModel(workout: workout, guidance: SystemGuidanceOutput()))
         self.onClose = onClose
     }
 

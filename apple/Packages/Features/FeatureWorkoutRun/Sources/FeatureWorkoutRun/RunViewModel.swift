@@ -16,17 +16,41 @@ public final class RunViewModel {
     public private(set) var state: RunState = .idle
 
     private var engine: TimerEngine
+    private var detector = RunEventDetector()
     private let clock: any AppClock
+    private let guidance: (any GuidanceOutput)?
 
-    public init(workout: Workout, clock: any AppClock = SystemClock(), countdown: TimeInterval = 10) {
+    public init(
+        workout: Workout,
+        clock: any AppClock = SystemClock(),
+        countdown: TimeInterval = 10,
+        guidance: (any GuidanceOutput)? = nil
+    ) {
         self.workout = workout
         self.clock = clock
+        self.guidance = guidance
         self.engine = TimerEngine(configuration: RunConfiguration(workout: workout, countdown: countdown))
     }
 
     // MARK: - Actions
 
-    public func refresh() { state = engine.state(at: clock.now()) }
+    /// Met à jour l'état affiché et déclenche les bips / vibrations (une seule fois par événement).
+    public func refresh() {
+        state = engine.state(at: clock.now())
+        for event in detector.events(for: state) {
+            guidance?.play(Self.cue(for: event))
+        }
+    }
+
+    static func cue(for event: RunEvent) -> GuidanceCue {
+        switch event {
+        case .countdownTick(let n): .countdownTick(n)
+        case .go: .go
+        case .tenSecondsLeft: .tenSecondsWarning
+        case .blockEnded: .blockEnd
+        case .sessionFinished: .sessionEnd
+        }
+    }
 
     public func start() {
         engine.start(at: clock.now())

@@ -1,6 +1,6 @@
 # T-012 — Écran de séance (compact + gym) — début de l'étape 3
 
-- **Statut** : en cours (code écrit, non compilé)
+- **Statut** : à tester (testé par Dams dans le simulateur le 21/11/2026, CI verte)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-011

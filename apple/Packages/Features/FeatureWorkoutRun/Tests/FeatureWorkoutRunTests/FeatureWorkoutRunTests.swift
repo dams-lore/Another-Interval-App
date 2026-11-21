@@ -91,3 +91,65 @@ import TestSupport
         #expect(model.blockProgress == 0.5)
     }
 }
+
+@MainActor @Suite struct RunGuidanceTests {
+    private func makeModel(_ clock: TestClock, _ guidance: RecordingGuidanceOutput) -> RunViewModel {
+        let workout = Workout(
+            name: "Tabata", format: .intervals,
+            steps: [Step(type: .time, movement: "Work", value: 30), Step(type: .time, movement: "Rest", value: 10)],
+            rounds: 1
+        )
+        return RunViewModel(workout: workout, clock: clock, countdown: 5, guidance: guidance)
+    }
+
+    @Test func playsCountdownGoWarningAndBlockEnd() {
+        let clock = TestClock()
+        let guidance = RecordingGuidanceOutput()
+        let model = makeModel(clock, guidance)
+        model.start()
+        for _ in 0..<80 {          // 40 s par pas de 0,5 s
+            clock.advance(by: 0.5)
+            model.refresh()
+        }
+        #expect(guidance.cues == [
+            .countdownTick(3), .countdownTick(2), .countdownTick(1),
+            .go, .tenSecondsWarning, .blockEnd,
+        ])
+    }
+
+    @Test func refreshingTwiceDoesNotReplayACue() {
+        let clock = TestClock()
+        let guidance = RecordingGuidanceOutput()
+        let model = makeModel(clock, guidance)
+        model.start()
+        clock.advance(by: 5)
+        model.refresh()
+        model.refresh()
+        model.refresh()
+        #expect(guidance.cues.filter { $0 == .go }.count == 1)
+    }
+
+    @Test func stopPlaysSessionEnd() {
+        let clock = TestClock()
+        let guidance = RecordingGuidanceOutput()
+        let model = makeModel(clock, guidance)
+        model.start()
+        clock.advance(by: 10)
+        model.refresh()
+        model.stop()
+        #expect(guidance.cues.last == .sessionEnd)
+    }
+
+    @Test func noGuidanceIsFine() {
+        let clock = TestClock()
+        let model = RunViewModel(workout: DemoWorkoutFixture.simple, clock: clock, countdown: 0)
+        model.start()
+        clock.advance(by: 1)
+        model.refresh()
+        #expect(model.state.phase == .running)
+    }
+}
+
+enum DemoWorkoutFixture {
+    static let simple = Workout(name: "Simple", format: .forTime, steps: [Step(type: .reps, movement: "Squats", value: 10)])
+}
