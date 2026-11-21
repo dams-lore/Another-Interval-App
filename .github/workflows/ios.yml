@@ -23,8 +23,9 @@ jobs:
         working-directory: apple/Packages
         run: |
           set -e
-          for pkg in */; do
-            echo "::group::${pkg%/}"
+          for manifest in $(find . -name Package.swift -not -path "*/.build/*"); do
+            pkg=$(dirname "$manifest")
+            echo "::group::$pkg"
             (cd "$pkg" && swift test)
             echo "::endgroup::"
           done

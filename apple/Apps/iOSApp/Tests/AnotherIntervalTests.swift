@@ -5,4 +5,8 @@ import Testing
     @Test func rootViewCanBeCreated() {
         _ = RootView()
     }
+
+    @Test func demoWorkoutIsValid() throws {
+        try DemoWorkout.breakfastClub.validate()
+    }
 }

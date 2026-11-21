@@ -7,6 +7,7 @@ let project = Project(
         .local(path: "../../Packages/Domain"),
         .local(path: "../../Packages/TimerEngine"),
         .local(path: "../../Packages/DesignSystem"),
+        .local(path: "../../Packages/Features/FeatureWorkoutRun"),
     ],
     targets: [
         .target(
@@ -24,6 +25,7 @@ let project = Project(
                 .package(product: "Domain", type: .runtime),
                 .package(product: "TimerEngine", type: .runtime),
                 .package(product: "DesignSystem", type: .runtime),
+                .package(product: "FeatureWorkoutRun", type: .runtime),
             ],
             settings: strictSettings
         ),

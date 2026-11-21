@@ -16,6 +16,7 @@
 | T-009 | Spec technique de l'app native (Swift + Supabase) | P0 | à tester | — |
 | T-010 | Squelette de l'app native (Tuist + packages + CI) | P0 | à tester | T-009 |
 | T-011 | Domain + TimerEngine (formats, pause, skip, tests) | P0 | à tester | T-010 |
+| T-012 | Écran de séance compact + gym (Figma Run) | P0 | en cours | T-011 |
 
 ## Idées non encore découpées
 - Finir la refonte design Garmin (après T-001)
