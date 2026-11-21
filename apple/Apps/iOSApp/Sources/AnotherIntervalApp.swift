@@ -1,7 +1,10 @@
 import SwiftUI
 import Domain
 import FeatureWorkoutRun
+import FeaturePhotoImport
 import Platform
+import Backend
+import DataLayer
 
 @main
 struct AnotherIntervalApp: App {
@@ -12,28 +15,68 @@ struct AnotherIntervalApp: App {
     }
 }
 
-/// Écran temporaire : liste de séances de démo pour essayer tous les formats
-/// (la vraie navigation, l'éditeur et l'import photo viennent ensuite).
+/// Clé de développement lue dans Info.plist (remplie depuis Config/Secrets.xcconfig, jamais commitée).
+enum AppConfig {
+    static var anthropicKey: String {
+        (Bundle.main.object(forInfoDictionaryKey: "AnthropicAPIKey") as? String) ?? ""
+    }
+}
+
+/// Écran temporaire : séances de démo + import par photo (la vraie navigation et le stockage viennent ensuite).
 struct RootView: View {
     @State private var selected: Workout?
+    @State private var imported: [Workout] = []
+    @State private var showImport = false
+    @State private var importModel = PhotoImportViewModel(
+        service: PhotoWorkoutImportService(client: AnthropicImportClient(apiKey: AppConfig.anthropicKey))
+    )
 
     var body: some View {
         NavigationStack {
-            List(DemoWorkout.all) { workout in
-                Button {
-                    selected = workout
-                } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(workout.name).font(.headline)
-                        Text(workout.format.rawValue.uppercased())
-                            .font(.caption).foregroundStyle(.secondary)
+            List {
+                Section {
+                    Button {
+                        importModel.reset()
+                        showImport = true
+                    } label: {
+                        Label("Importer une séance par photo", systemImage: "camera.viewfinder")
+                            .font(.headline)
                     }
                 }
+                if !imported.isEmpty {
+                    Section("Importées") { rows(imported) }
+                }
+                Section("Séances de démo") { rows(DemoWorkout.all) }
             }
-            .navigationTitle("Séances de démo")
+            .navigationTitle("Another Interval")
+        }
+        .sheet(isPresented: $showImport) {
+            PhotoImportView(
+                viewModel: importModel,
+                onStart: { workout in
+                    imported.insert(workout, at: 0)
+                    showImport = false
+                    selected = workout
+                },
+                onClose: { showImport = false }
+            )
         }
         .fullScreenCover(item: $selected) { workout in
             RunHost(workout: workout) { selected = nil }
+        }
+    }
+
+    private func rows(_ workouts: [Workout]) -> some View {
+        ForEach(workouts) { workout in
+            Button {
+                selected = workout
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(workout.name).font(.headline)
+                    Text(workout.format.rawValue.uppercased())
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
         }
     }
 }

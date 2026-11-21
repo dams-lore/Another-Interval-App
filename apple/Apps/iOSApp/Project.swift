@@ -8,6 +8,9 @@ let project = Project(
         .local(path: "../../Packages/TimerEngine"),
         .local(path: "../../Packages/DesignSystem"),
         .local(path: "../../Packages/Platform"),
+        .local(path: "../../Packages/Backend"),
+        .local(path: "../../Packages/DataLayer"),
+        .local(path: "../../Packages/Features/FeaturePhotoImport"),
         .local(path: "../../Packages/Features/FeatureWorkoutRun"),
     ],
     targets: [
@@ -20,6 +23,7 @@ let project = Project(
             infoPlist: .extendingDefault(with: [
                 "CFBundleDisplayName": "Another Interval",
                 "UILaunchScreen": [:],
+                "AnthropicAPIKey": "$(ANTHROPIC_API_KEY)",
             ]),
             sources: ["Sources/**"],
             dependencies: [
@@ -27,9 +31,12 @@ let project = Project(
                 .package(product: "TimerEngine", type: .runtime),
                 .package(product: "DesignSystem", type: .runtime),
                 .package(product: "Platform", type: .runtime),
+                .package(product: "Backend", type: .runtime),
+                .package(product: "DataLayer", type: .runtime),
+                .package(product: "FeaturePhotoImport", type: .runtime),
                 .package(product: "FeatureWorkoutRun", type: .runtime),
             ],
-            settings: strictSettings
+            settings: appSettings(debug: "Config/Debug.xcconfig", release: "Config/Release.xcconfig")
         ),
         .target(
             name: "AnotherIntervalTests",

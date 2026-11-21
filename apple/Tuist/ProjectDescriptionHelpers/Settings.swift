@@ -13,3 +13,17 @@ public let strictSettings: Settings = .settings(
 )
 
 public let iOSDeploymentTarget: DeploymentTargets = .iOS("18.0")
+
+/// Réglages de l'app : Swift 6 strict + un fichier .xcconfig par configuration (clés de dev hors du code).
+public func appSettings(debug: Path, release: Path) -> Settings {
+    .settings(
+        base: [
+            "SWIFT_VERSION": "6.0",
+            "SWIFT_STRICT_CONCURRENCY": "complete",
+        ],
+        configurations: [
+            .debug(name: "Debug", xcconfig: debug),
+            .release(name: "Release", xcconfig: release),
+        ]
+    )
+}

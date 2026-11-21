@@ -59,3 +59,6 @@ Derived/
 .build/
 .swiftpm/
 apple/Tuist/.build/
+
+# Clé de développement de l'app native (jamais commitée)
+apple/Apps/iOSApp/Config/Secrets.xcconfig

@@ -8,12 +8,18 @@ let package = Package(
     dependencies: [
         .package(path: "../Domain"),
         .package(path: "../Backend"),
+        .package(path: "../TestSupport"),
     ],
     targets: [
         .target(name: "DataLayer", dependencies: [
             .product(name: "Domain", package: "Domain"),
             .product(name: "Backend", package: "Backend"),
         ]),
-        .testTarget(name: "DataLayerTests", dependencies: ["DataLayer"]),
+        .testTarget(name: "DataLayerTests", dependencies: [
+            "DataLayer",
+            .product(name: "Domain", package: "Domain"),
+            .product(name: "Backend", package: "Backend"),
+            .product(name: "TestSupport", package: "TestSupport"),
+        ]),
     ]
 )

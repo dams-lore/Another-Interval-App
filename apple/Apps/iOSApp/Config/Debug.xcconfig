@@ -1,0 +1,4 @@
+// Réglages de la version Debug.
+// La clé de développement vient de Secrets.xcconfig (jamais commité, voir Secrets.example.xcconfig).
+ANTHROPIC_API_KEY =
+#include? "Secrets.xcconfig"
