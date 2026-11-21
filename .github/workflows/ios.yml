@@ -47,8 +47,13 @@ jobs:
       - name: Build + tests (simulateur)
         working-directory: apple
         run: |
+          set -o pipefail
           xcodebuild test \
             -workspace AnotherInterval.xcworkspace \
             -scheme AnotherInterval \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
-            CODE_SIGNING_ALLOWED=NO
+            -resultBundlePath build/result.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log || STATUS=$?
+          echo "=== RÉSUMÉ DES ERREURS ==="
+          grep -nE "error:|Failing tests|failed|Testing failed|Unable to find|TEST FAILED|✘" build.log | cut -c1-400 | head -40 || true
+          exit ${STATUS:-0}
