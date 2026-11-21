@@ -40,7 +40,6 @@ struct EveryXSetupView: View {
     let onClose: () -> Void
 
     var body: some View {
-        @Bindable var model = model
         ZStack {
             DS.Colors.backgroundGradient.ignoresSafeArea()
             ScrollView {
