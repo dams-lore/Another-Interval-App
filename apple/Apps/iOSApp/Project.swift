@@ -26,6 +26,7 @@ let project = Project(
                 "AnthropicAPIKey": "$(ANTHROPIC_API_KEY)",
             ]),
             sources: ["Sources/**"],
+            resources: ["Resources/**"],
             dependencies: [
                 .package(product: "Domain", type: .runtime),
                 .package(product: "TimerEngine", type: .runtime),

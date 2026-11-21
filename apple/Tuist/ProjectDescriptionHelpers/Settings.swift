@@ -20,6 +20,7 @@ public func appSettings(debug: Path, release: Path) -> Settings {
         base: [
             "SWIFT_VERSION": "6.0",
             "SWIFT_STRICT_CONCURRENCY": "complete",
+            "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         ],
         configurations: [
             .debug(name: "Debug", xcconfig: debug),
