@@ -62,3 +62,9 @@ Toutes les commandes npm / npx / expo / git se lancent depuis ce dossier, jamais
 - `docs/integrations.md` — Anthropic API, Codemagic/EAS, Figma, Notion, Webflow
 - `docs/besoins-internet.md` — besoins Internet (comptes, sync, IA, abonnement), contraintes Apple, architecture backend
 - `docs/tickets/` — backlog, un fichier par ticket
+
+## App native (en cours — T-009 / T-010)
+- Code Swift dans `apple/` (spec : `docs/architecture.md`). iOS 18, Swift 6 strict, projet Xcode **généré par Tuist** (jamais commité).
+- Sur le Mac, depuis `apple/` : `mise install` ; `tuist install` ; `tuist generate` ; tests d'un package : `cd Packages/<Nom>` puis `swift test`.
+- Claude ne peut pas compiler le Swift (session Linux) : Dams compile sur le Mac et colle les erreurs.
+- L'app Expo reste la référence jusqu'à la parité (spec § 13).
