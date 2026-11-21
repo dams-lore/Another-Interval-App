@@ -19,7 +19,6 @@
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(git push --force:*)",
       "mcp__notion__notion-create-pages",
