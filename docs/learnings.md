@@ -40,3 +40,7 @@
 
 ## Permissions Claude Code
 - 21/11/2026 : la règle `"Bash(git push:*)"` de `permissions.deny` (`.claude/settings.json`) a été **retirée temporairement** à la demande de Dams, pour que Claude pousse sa branche `claude/*` pendant le dev natif. **À remettre plus tard au besoin** (`git push --force` et `git reset --hard` restent interdits). Toujours jamais de push direct sur `master` : tout passe par PR.
+
+## App native (Tuist / Xcode)
+- Erreurs Xcode « Couldn't load <Package> because it is already opened from another project or workspace » : quitter Xcode (`Cmd+Q`), `tuist generate --no-open`, ouvrir **uniquement** `apple/AnotherInterval.xcworkspace`. Jamais le `.xcodeproj` ni un dossier de package en parallèle.
+- `mise` s'installe avec `curl https://mise.run | sh` (pas besoin de Homebrew) puis `mise activate zsh` dans `~/.zshrc`.

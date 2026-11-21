@@ -1,6 +1,6 @@
 # T-010 — Squelette de l'app native (étape 1 de `docs/architecture.md` § 15)
 
-- **Statut** : en cours
+- **Statut** : à tester (validé sur Mac par Dams le 21/11/2026, reste la CI)
 - **Priorité** : P0
 - **Type** : chore
 - **Dépend de** : T-009 (spec, PR #4)
@@ -23,9 +23,9 @@ Démarrer l'app iOS native (Swift 6, SwiftUI, iOS 18) : monorepo SPM + projet Xc
 - Features, Widgets, WatchApp, WearableKit : tickets suivants.
 
 ## Critère de fin (vérifiable sur le Mac)
-- [ ] `tuist install` puis `tuist generate` ouvrent Xcode sans erreur.
-- [ ] `Cmd+B` compile, `Cmd+U` : tous les tests verts.
-- [ ] L'app affiche « Another Interval » dans le simulateur iPhone.
+- [x] `tuist install` puis `tuist generate` sans erreur (Tuist 4.31.0). Erreurs « already opened from another project » levées en rouvrant uniquement le `.xcworkspace`.
+- [x] `Cmd+B` compile, `Cmd+U` : tous les tests verts.
+- [x] L'app affiche « Another Interval » dans le simulateur iPhone.
 - [ ] CI GitHub verte sur la PR.
 - [ ] (Plus tard, avec compte Apple) l'app vide s'installe sur l'iPhone via TestFlight.
 

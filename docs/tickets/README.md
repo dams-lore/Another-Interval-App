@@ -14,7 +14,7 @@
 | T-007 | Conventions PR + tests unitaires + CI | P1 | à tester | — |
 | T-008 | Corriger les erreurs `tsc` existantes et rendre l'étape CI bloquante | P1 | à faire | T-007 |
 | T-009 | Spec technique de l'app native (Swift + Supabase) | P0 | à tester | — |
-| T-010 | Squelette de l'app native (Tuist + packages + CI) | P0 | en cours | T-009 |
+| T-010 | Squelette de l'app native (Tuist + packages + CI) | P0 | à tester | T-009 |
 | T-011 | Domain + TimerEngine (formats, pause, skip, tests) | P0 | en cours | T-010 |
 
 ## Idées non encore découpées
