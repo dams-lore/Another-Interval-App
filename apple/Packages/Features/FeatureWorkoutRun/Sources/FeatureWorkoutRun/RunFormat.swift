@@ -13,6 +13,12 @@ public enum RunFormat {
         format(Int(max(0, seconds).rounded(.up)))
     }
 
+    /// Format court « m:ss » (« 4:13 »), utilisé dans le parcours Every X.
+    public static func short(_ seconds: TimeInterval, roundingUp: Bool = false) -> String {
+        let total = Int(max(0, seconds).rounded(roundingUp ? .up : .down))
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
     private static func format(_ total: Int) -> String {
         let minutes = total / 60
         let secs = total % 60

@@ -10,6 +10,10 @@ public enum GuidanceCue: Sendable, Equatable {
     case blockEnd
     /// Fin de séance.
     case sessionEnd
+    /// Étape validée d'un tap (Every X).
+    case stepDone
+    /// Set terminé (Every X).
+    case setDone
 }
 
 /// Sortie audio / haptique. Implémentée par Platform (iPhone), par un faux dans les tests.

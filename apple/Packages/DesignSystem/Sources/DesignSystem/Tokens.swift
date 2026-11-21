@@ -28,6 +28,13 @@ public enum DS {
         public static let accentError = Color(hex: 0xE05555)
         /// Fond du mode gym.
         public static let gymBackground = Color(hex: 0xAAEE66)
+        /// Fond de l'écran de repos (Every X).
+        public static let restBackground = Color(hex: 0x1A1916)
+        /// Couleurs des étapes dans les barres de récap (1re étape, 2e, 3e, 4e…).
+        public static let stepPalette: [Color] = [
+            Color(hex: 0x456A91), Color(hex: 0x6B4F9A), Color(hex: 0x4E8F7A), Color(hex: 0xC27C3A),
+        ]
+        public static let restBar = Color.white.opacity(0.55)
 
         public static let backgroundGradient = LinearGradient(
             stops: [

@@ -82,17 +82,26 @@ struct RootView: View {
 }
 
 /// Garde le ViewModel de la séance en vie pendant toute la présentation.
+/// Les séances « Every X × N » (EMOM) ouvrent leur parcours dédié, les autres l'écran de séance classique.
 struct RunHost: View {
-    @State private var viewModel: RunViewModel
+    @State private var runModel: RunViewModel
+    @State private var everyModel: EveryXViewModel
+    private let isEveryX: Bool
     let onClose: () -> Void
 
     init(workout: Workout, onClose: @escaping () -> Void) {
-        _viewModel = State(initialValue: RunViewModel(workout: workout, guidance: SystemGuidanceOutput()))
+        _runModel = State(initialValue: RunViewModel(workout: workout, guidance: SystemGuidanceOutput()))
+        _everyModel = State(initialValue: EveryXViewModel(workout: workout, guidance: SystemGuidanceOutput()))
+        isEveryX = workout.format == .emom && !workout.steps.isEmpty
         self.onClose = onClose
     }
 
     var body: some View {
-        RunView(viewModel: viewModel, onClose: onClose)
+        if isEveryX {
+            EveryXView(model: everyModel, onClose: onClose)
+        } else {
+            RunView(viewModel: runModel, onClose: onClose)
+        }
     }
 }
 

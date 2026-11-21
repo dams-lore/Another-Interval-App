@@ -20,6 +20,7 @@
 | T-013 | Bips et haptics pendant la séance | P0 | en cours | T-012 |
 | T-014 | Import de séance par photo (killer feature) | P0 | à faire | T-011 |
 | T-015 | WearableGarmin natif (Connect IQ) | P1 | à faire | T-013, T-001 |
+| T-016 | Parcours « Every X × N » : récap, set par set, repos, récap de fin | P0 | en cours | T-014 |
 
 ## Idées non encore découpées
 - Finir la refonte design Garmin (après T-001)

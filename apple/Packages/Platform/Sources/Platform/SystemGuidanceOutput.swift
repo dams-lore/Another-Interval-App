@@ -37,6 +37,11 @@ public final class SystemGuidanceOutput: GuidanceOutput {
         case .blockEnd, .sessionEnd:
             beep(longBeep)
             notify(.success)
+        case .stepDone:
+            impact(.medium)
+        case .setDone:
+            beep(shortBeep)
+            notify(.success)
         }
     }
 

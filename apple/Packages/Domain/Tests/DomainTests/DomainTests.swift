@@ -100,3 +100,36 @@ import Domain
         #expect(GuidanceCue.go != .blockEnd)
     }
 }
+
+@Suite struct EveryXSummaryTests {
+    private func result(_ index: Int, _ time: TimeInterval?) -> SetResult {
+        SetResult(setIndex: index, completionTime: time, interval: 300)
+    }
+
+    @Test func computesAverageBestWorstAndSpread() {
+        let summary = EveryXSummary(results: [result(0, 195), result(1, 190), result(2, 202), result(3, 205)], totalSets: 4)
+        #expect(summary.completedCount == 4)
+        #expect(summary.bestTime == 190)
+        #expect(summary.worstTime == 205)
+        #expect(summary.spread == 15)
+        #expect(summary.averageTime == 198)
+    }
+
+    @Test func unfinishedSetsAreIgnoredInStats() {
+        let summary = EveryXSummary(results: [result(0, 200), result(1, nil)], totalSets: 2)
+        #expect(summary.completedCount == 1)
+        #expect(summary.bestTime == 200)
+    }
+
+    @Test func noCompletedSetGivesNoStats() {
+        let summary = EveryXSummary(results: [result(0, nil)], totalSets: 1)
+        #expect(summary.averageTime == nil)
+        #expect(summary.spread == nil)
+    }
+
+    @Test func restIsTheTimeSavedOnTheInterval() {
+        #expect(result(0, 195).rest == 105)
+        #expect(result(0, nil).rest == nil)
+        #expect(result(0, 400).rest == 0)
+    }
+}
