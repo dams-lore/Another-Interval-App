@@ -26,9 +26,13 @@ import Backend
         let body = try #require(request.httpBody)
         let object = try #require(try JSONSerialization.jsonObject(with: body) as? [String: Any])
         #expect(object["model"] as? String == "claude-sonnet-5-5")
-        let text = String(decoding: body, as: UTF8.self)
-        #expect(text.contains(Data([1, 2, 3]).base64EncodedString()))
-        #expect(text.contains("21/11/2026"))
+        // On relit le JSON décodé : le texte brut échappe les « / » (21\/11\/2026).
+        let messages = try #require(object["messages"] as? [[String: Any]])
+        let content = try #require(messages.first?["content"] as? [[String: Any]])
+        let image = try #require(content.first?["source"] as? [String: Any])
+        #expect(image["data"] as? String == Data([1, 2, 3]).base64EncodedString())
+        let prompt = try #require(content.last?["text"] as? String)
+        #expect(prompt.contains("21/11/2026"))
     }
 
     @Test func promptKnowsEveryXFormats() {
