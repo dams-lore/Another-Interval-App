@@ -1,6 +1,6 @@
 # T-011 — Domain + TimerEngine (étape 2 de `docs/architecture.md` § 15)
 
-- **Statut** : en cours (code écrit, non compilé)
+- **Statut** : à tester (swift test vert sur Mac le 21/11/2026 : Domain 13 tests, TimerEngine 19 tests)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-010
@@ -22,5 +22,5 @@ Le cœur du produit : le moteur de timer, testable sans UI ni iPhone.
 - `Session`, `BlockResult`, `PersonalRecord`, interval score, zones cardiaques : étapes suivantes (la formule du score reste à spécifier).
 
 ## Critère de fin (vérifiable sur le Mac)
-- [ ] `swift test` vert dans `Domain`, `TimerEngine`, `TestSupport`.
+- [x] `swift test` vert dans `Domain` (13) et `TimerEngine` (19). `TestSupport` testé via TimerEngine.
 - [ ] `Cmd+U` vert dans Xcode.
