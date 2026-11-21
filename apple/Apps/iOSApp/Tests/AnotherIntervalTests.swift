@@ -1,12 +1,15 @@
 import Testing
 @testable import AnotherInterval
 
-@Suite struct AnotherIntervalTests {
+// RootView est une vue SwiftUI (isolée sur le MainActor) : le test doit l'être aussi.
+@MainActor @Suite struct AnotherIntervalTests {
     @Test func rootViewCanBeCreated() {
         _ = RootView()
     }
 
-    @Test func demoWorkoutIsValid() throws {
-        try DemoWorkout.breakfastClub.validate()
+    @Test func allDemoWorkoutsAreValid() throws {
+        for workout in DemoWorkout.all {
+            try workout.validate()
+        }
     }
 }
