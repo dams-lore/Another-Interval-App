@@ -133,7 +133,7 @@ public final class RunViewModel {
     /// Lignes à afficher sous le titre : tout ce qu'il y a à faire pendant l'intervalle (EMOM),
     /// ou le détail du bloc courant (fractionné).
     public var blockLines: [String] {
-        if configuration.format == .emom { return workout.steps.map(StepFormat.line(for:)) }
+        if configuration.format == .emom { return workout.steps.map { StepFormat.line(for: $0) } }
         if let step = currentStep, step.type != .time { return [StepFormat.line(for: step)] }
         return []
     }
