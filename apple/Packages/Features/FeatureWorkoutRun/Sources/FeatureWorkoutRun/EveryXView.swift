@@ -50,41 +50,68 @@ struct EveryXSetupView: View {
                         Spacer()
                     }
                     Text(model.workout.name)
-                        .font(.system(size: 36, weight: .heavy)).tracking(-1)
+                        .font(.system(size: 34, weight: .heavy)).tracking(-1)
                         .foregroundStyle(DS.Colors.textPrimary)
 
                     card {
-                        Text("EVERY \(RunFormat.short(model.interval)) × \(model.setCount) SETS")
-                            .font(.system(size: 13, weight: .bold)).tracking(2)
+                        Text("MODIFIABLE AVANT LE DÉPART")
+                            .font(.system(size: 12, weight: .bold)).tracking(2)
                             .foregroundStyle(DS.Colors.textSecondary)
-                        ForEach(Array(model.stepLines.enumerated()), id: \.offset) { index, line in
-                            HStack(alignment: .firstTextBaseline, spacing: 16) {
-                                Text("\(index + 1)")
-                                    .font(.system(size: 16, weight: .bold)).foregroundStyle(DS.Colors.textSecondary)
-                                    .frame(width: 20, alignment: .leading)
-                                Text(line)
-                                    .font(.system(size: 24, weight: .bold)).foregroundStyle(DS.Colors.textPrimary)
-                            }
-                        }
-                        Text(model.explanationText)
-                            .font(.system(size: 15)).foregroundStyle(DS.Colors.textSecondary)
+                        adjustRow("Intervalle", value: RunFormat.short(model.interval),
+                                  minus: { model.adjustInterval(by: -30) }, plus: { model.adjustInterval(by: 30) })
+                        adjustRow("Sets", value: "\(model.setCount)",
+                                  minus: { model.adjustSets(by: -1) }, plus: { model.adjustSets(by: 1) })
                     }
 
                     card {
-                        option("Départ dans") {
-                            segmented([10, 20, 30].map { Double($0) }, selected: model.countdown, label: { "\(Int($0)) s" }) {
-                                model.countdown = $0
+                        Text("DANS CHAQUE SET")
+                            .font(.system(size: 12, weight: .bold)).tracking(2)
+                            .foregroundStyle(DS.Colors.textSecondary)
+                        ForEach(Array(model.stepLines.enumerated()), id: \.offset) { index, line in
+                            HStack(spacing: 10) {
+                                Text("\(index + 1)")
+                                    .font(.system(size: 15, weight: .bold)).foregroundStyle(DS.Colors.textSecondary)
+                                    .frame(width: 18, alignment: .leading)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(line)
+                                        .font(.system(size: 20, weight: .bold)).foregroundStyle(DS.Colors.textPrimary)
+                                        .lineLimit(2).minimumScaleFactor(0.7)
+                                    if let note = model.stepNote(at: index) {
+                                        Text(note).font(.system(size: 13)).foregroundStyle(DS.Colors.textSecondary)
+                                    }
+                                }
+                                Spacer(minLength: 4)
+                                roundButton("−") { model.adjustStep(at: index, by: -1) }
+                                roundButton("+") { model.adjustStep(at: index, by: 1) }
                             }
                         }
-                        option("Validation") {
-                            segmented([EveryXValidation.perStep, .perSet], selected: model.validation, label: { mode in
-                                mode == .perStep ? "\(max(1, model.steps.count)) taps" : "1 tap"
-                            }) { model.validation = $0 }
+                        Text(model.explanationText)
+                            .font(.system(size: 14)).foregroundStyle(DS.Colors.textSecondary)
+                    }
+
+                    card {
+                        HStack {
+                            Text("Départ dans")
+                                .font(.system(size: 20, weight: .bold)).foregroundStyle(DS.Colors.textPrimary)
+                                .lineLimit(1).fixedSize()
+                            Spacer(minLength: 12)
+                            HStack(spacing: 4) {
+                                ForEach([5.0, 10.0], id: \.self) { seconds in
+                                    Button { model.countdown = seconds } label: {
+                                        Text("\(Int(seconds)) s")
+                                            .font(.system(size: 18, weight: .bold)).lineLimit(1).fixedSize()
+                                            .foregroundStyle(model.countdown == seconds ? Color.white : DS.Colors.textSecondary)
+                                            .padding(.horizontal, 18).padding(.vertical, 10)
+                                            .background(model.countdown == seconds ? DS.Colors.textPrimary : Color.clear,
+                                                        in: RoundedRectangle(cornerRadius: 16))
+                                    }
+                                }
+                            }
+                            .padding(4)
+                            .background(Color.white.opacity(0.4), in: RoundedRectangle(cornerRadius: 20))
                         }
-                        Text(model.validation == .perStep
-                             ? "Un tap à la fin de chaque étape : tu obtiens tes \(max(1, model.steps.count)) splits par set. Touche n'importe où sur l'écran."
-                             : "Un seul tap à la fin du set. Touche n'importe où sur l'écran.")
-                            .font(.system(size: 15)).foregroundStyle(DS.Colors.textSecondary)
+                        Text("Un tap à la fin de chaque étape : tu obtiens un temps par étape. Touche n'importe où sur l'écran.")
+                            .font(.system(size: 14)).foregroundStyle(DS.Colors.textSecondary)
                     }
 
                     Button { model.start() } label: {
@@ -107,30 +134,26 @@ struct EveryXSetupView: View {
             .overlay(RoundedRectangle(cornerRadius: 28).stroke(DS.Colors.glassBorder, lineWidth: 1))
     }
 
-    private func option<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {
-        HStack {
-            Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(DS.Colors.textPrimary)
+    private func adjustRow(_ title: String, value: String, minus: @escaping () -> Void, plus: @escaping () -> Void) -> some View {
+        HStack(spacing: 10) {
+            Text(title)
+                .font(.system(size: 20, weight: .bold)).foregroundStyle(DS.Colors.textPrimary)
             Spacer()
-            content()
+            roundButton("−", action: minus)
+            Text(value)
+                .font(.system(size: 22, weight: .heavy).monospacedDigit()).foregroundStyle(DS.Colors.textPrimary)
+                .frame(minWidth: 60)
+            roundButton("+", action: plus)
         }
     }
 
-    private func segmented<Value: Equatable>(
-        _ values: [Value], selected: Value, label: @escaping (Value) -> String, onSelect: @escaping (Value) -> Void
-    ) -> some View {
-        HStack(spacing: 4) {
-            ForEach(Array(values.enumerated()), id: \.offset) { _, value in
-                Button { onSelect(value) } label: {
-                    Text(label(value))
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(value == selected ? Color.white : DS.Colors.textSecondary)
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .background(value == selected ? DS.Colors.textPrimary : Color.clear, in: RoundedRectangle(cornerRadius: 16))
-                }
-            }
+    private func roundButton(_ symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(symbol)
+                .font(.system(size: 22, weight: .bold)).foregroundStyle(DS.Colors.textPrimary)
+                .frame(width: 40, height: 40)
+                .background(Color.white.opacity(0.5), in: Circle())
         }
-        .padding(4)
-        .background(Color.white.opacity(0.4), in: RoundedRectangle(cornerRadius: 20))
     }
 }
 

@@ -3,14 +3,6 @@ import Observation
 import Domain
 import TimerEngine
 
-/// Comment l'athlète valide sa progression dans un set.
-public enum EveryXValidation: Sendable, Equatable {
-    /// Un tap à la fin de chaque étape : on obtient un temps par étape.
-    case perStep
-    /// Un seul tap à la fin du set.
-    case perSet
-}
-
 /// État visuel d'un set dans la rangée de pastilles.
 public enum SetBadge: Sendable, Equatable {
     case todo, current, done, notFinished
@@ -21,10 +13,10 @@ public enum SetBadge: Sendable, Equatable {
 /// (intervalles), le suivi des étapes et des splits est fait ici.
 @MainActor @Observable
 public final class EveryXViewModel {
-    public let workout: Workout
+    /// Séance en cours : modifiable avant le départ (valeurs des étapes, nombre de sets, durée de l'intervalle).
+    public private(set) var workout: Workout
 
-    // Réglages choisis avant le départ.
-    public var validation: EveryXValidation = .perStep
+    // Réglage choisi avant le départ (5 ou 10 secondes).
     public var countdown: TimeInterval = 10
 
     public private(set) var hasStarted = false
@@ -59,10 +51,30 @@ public final class EveryXViewModel {
         return value > 0 ? value : 60
     }
     public var totalDuration: TimeInterval { interval * Double(setCount) }
-    public var stepLines: [String] { steps.map(StepFormat.line(for:)) }
+    public var stepLines: [String] { steps.map { StepFormat.line(for: $0, includeNotes: false) } }
 
-    /// Nombre de taps nécessaires par set avec le mode choisi.
-    public var tapsPerSet: Int { validation == .perStep ? max(1, steps.count) : 1 }
+    /// Remarque d'une étape (ex. « H/F : 20/16 »), affichée en petit sur le récap.
+    public func stepNote(at index: Int) -> String? {
+        guard steps.indices.contains(index), let note = steps[index].notes, !note.isEmpty else { return nil }
+        return note
+    }
+
+    // MARK: - Modification avant le départ
+
+    public func adjustStep(at index: Int, by delta: Double) {
+        guard !hasStarted, workout.steps.indices.contains(index) else { return }
+        workout.steps[index].value = max(1, workout.steps[index].value + delta)
+    }
+
+    public func adjustSets(by delta: Int) {
+        guard !hasStarted else { return }
+        workout.rounds = min(20, max(1, setCount + delta))
+    }
+
+    public func adjustInterval(by delta: TimeInterval) {
+        guard !hasStarted else { return }
+        workout.intervalSeconds = min(1800, max(60, interval + delta))
+    }
 
     // MARK: - Actions
 
@@ -85,25 +97,19 @@ public final class EveryXViewModel {
         }
     }
 
-    /// Valide l'étape en cours (ou le set entier en mode « 1 tap »).
+    /// Valide l'étape en cours ; la dernière étape termine le set.
     public func tap() {
-        guard hasStarted, state.phase == .running, completionTime == nil, let setElapsed = state.blockElapsed else { return }
-        switch validation {
-        case .perSet:
+        guard hasStarted, state.phase == .running, completionTime == nil,
+              let setElapsed = state.blockElapsed, currentStepIndex < steps.count else { return }
+        let step = steps[currentStepIndex]
+        currentSplits.append(StepSplit(stepIndex: currentStepIndex, movement: step.movement, duration: setElapsed - stepStart))
+        stepStart = setElapsed
+        currentStepIndex += 1
+        if currentStepIndex >= steps.count {
             completionTime = setElapsed
             guidance?.play(.setDone)
-        case .perStep:
-            guard currentStepIndex < steps.count else { return }
-            let step = steps[currentStepIndex]
-            currentSplits.append(StepSplit(stepIndex: currentStepIndex, movement: step.movement, duration: setElapsed - stepStart))
-            stepStart = setElapsed
-            currentStepIndex += 1
-            if currentStepIndex >= steps.count {
-                completionTime = setElapsed
-                guidance?.play(.setDone)
-            } else {
-                guidance?.play(.stepDone)
-            }
+        } else {
+            guidance?.play(.stepDone)
         }
     }
 
@@ -111,7 +117,7 @@ public final class EveryXViewModel {
     public func undoSetCompletion() {
         guard completionTime != nil, state.phase != .finished else { return }
         completionTime = nil
-        if validation == .perStep, let last = currentSplits.popLast() {
+        if let last = currentSplits.popLast() {
             currentStepIndex = last.stepIndex
             stepStart -= last.duration
         }
@@ -172,13 +178,14 @@ public final class EveryXViewModel {
 
     public var currentStepTitle: String {
         guard !steps.isEmpty else { return workout.name }
-        return StepFormat.line(for: steps[min(currentStepIndex, steps.count - 1)])
+        return StepFormat.line(for: steps[min(currentStepIndex, steps.count - 1)], includeNotes: false)
     }
 
-    /// Titre du bouton principal : « Row fini » (nom de l'étape + fini), ou « Set fini » en mode 1 tap.
+    /// Titre du bouton principal : « Row fini » (nom de l'étape + fini), « Fin du set » sur la dernière étape.
     public var doneButtonTitle: String {
-        guard validation == .perStep, !steps.isEmpty else { return "Set fini" }
-        let name = steps[min(currentStepIndex, steps.count - 1)].movement
+        guard !steps.isEmpty else { return "Fin du set" }
+        if currentStepIndex >= steps.count - 1 { return "Fin du set" }
+        let name = steps[currentStepIndex].movement
         let shortName = name.split(separator: " ").first.map(String.init) ?? name
         return "\(shortName) fini"
     }
@@ -186,7 +193,7 @@ public final class EveryXViewModel {
     /// Première étape du prochain set (écran de repos).
     public var nextStepTitle: String? {
         guard state.roundIndex + 1 < setCount, let first = steps.first else { return nil }
-        return StepFormat.line(for: first)
+        return StepFormat.line(for: first, includeNotes: false)
     }
 
     public var countdownText: String { String(Int(state.countdownRemaining.rounded(.up))) }
@@ -198,10 +205,7 @@ public final class EveryXViewModel {
 
     /// Segments d'avancement des étapes du set en cours (vrai = étape validée).
     public var segmentStates: [Bool] {
-        let count = validation == .perStep ? max(1, steps.count) : 1
-        return (0..<count).map { index in
-            validation == .perStep ? index < currentStepIndex : completionTime != nil
-        }
+        (0..<max(1, steps.count)).map { $0 < currentStepIndex }
     }
 
     public var badges: [SetBadge] {

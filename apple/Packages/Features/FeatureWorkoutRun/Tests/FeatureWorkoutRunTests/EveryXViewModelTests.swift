@@ -41,11 +41,44 @@ import TestSupport
         #expect(model.explanationText.contains("15:00"))
     }
 
-    @Test func tapsPerSetFollowTheValidationMode() {
+    @Test func valuesCanBeEditedBeforeStart() {
         let model = makeModel(TestClock())
-        #expect(model.tapsPerSet == 4)
-        model.validation = .perSet
-        #expect(model.tapsPerSet == 1)
+        model.adjustStep(at: 0, by: -5)           // 20 -> 15 calories
+        model.adjustSets(by: 2)                   // 3 -> 5 sets
+        model.adjustInterval(by: 60)              // 5:00 -> 6:00
+        #expect(model.stepLines[0] == "15 cal Row")
+        #expect(model.setCount == 5)
+        #expect(model.interval == 360)
+        #expect(model.totalDuration == 1800)
+    }
+
+    @Test func editedValuesAreClamped() {
+        let model = makeModel(TestClock())
+        model.adjustStep(at: 1, by: -100)
+        model.adjustSets(by: -100)
+        model.adjustInterval(by: -10_000)
+        model.adjustStep(at: 99, by: 1)           // étape inexistante : ignorée
+        #expect(model.steps[1].value == 1)
+        #expect(model.setCount == 1)
+        #expect(model.interval == 60)
+    }
+
+    @Test func valuesCannotBeEditedOnceStarted() {
+        let model = makeModel(TestClock())
+        model.start()
+        model.adjustStep(at: 0, by: 5)
+        model.adjustSets(by: 1)
+        #expect(model.steps[0].value == 20)
+        #expect(model.setCount == 3)
+    }
+
+    @Test func notesAreNotInTheStepTitles() {
+        var workout = self.workout()
+        workout.steps[0].notes = "H/F : 20/16"
+        let model = EveryXViewModel(workout: workout, clock: TestClock())
+        #expect(model.stepLines[0] == "20 cal Row")
+        #expect(model.stepNote(at: 0) == "H/F : 20/16")
+        #expect(model.stepNote(at: 1) == nil)
     }
 
     @Test func startShowsTheFirstSet() {
@@ -71,6 +104,7 @@ import TestSupport
         #expect(model.doneButtonTitle == "Burpees fini")
         tap(model, clock, after: 40)    // burpees 0:40
         tap(model, clock, after: 60)    // row 1:00
+        #expect(model.doneButtonTitle == "Fin du set")   // dernière étape
         #expect(model.isResting == false)
         tap(model, clock, after: 42)    // burpees 0:42 : set fini à 3:15
         #expect(model.isResting)
@@ -122,17 +156,6 @@ import TestSupport
         model.tap()
         #expect(model.isResting)
         #expect(model.completionTimeText == "3:20")   // 50+40+60+40+10 = 200 s
-    }
-
-    @Test func oneTapModeCompletesTheWholeSet() {
-        let clock = TestClock()
-        let model = makeModel(clock)
-        model.validation = .perSet
-        model.start()
-        tap(model, clock, after: 200)
-        #expect(model.isResting)
-        #expect(model.doneButtonTitle == "Set fini")
-        #expect(model.segmentStates == [true])
     }
 
     @Test func tapsAreIgnoredDuringRestAndBeforeStart() {

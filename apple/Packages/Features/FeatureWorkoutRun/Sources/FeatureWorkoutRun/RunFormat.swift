@@ -28,7 +28,7 @@ public enum RunFormat {
 
 /// Texte d'une étape de séance (« 15 Burpees Over Row », « 20 cal Row », « 400 m Run »).
 public enum StepFormat {
-    public static func line(for step: Step) -> String {
+    public static func line(for step: Step, includeNotes: Bool = true) -> String {
         var amount = number(step.value)
         switch (step.type, step.unit) {
         case (.reps, nil), (.reps, "reps"): break
@@ -38,7 +38,7 @@ public enum StepFormat {
         }
         var text = "\(amount) \(step.movement)"
         if let weight = step.weight { text += " (\(number(weight)) kg)" }
-        if let notes = step.notes, !notes.isEmpty { text += " — \(notes)" }
+        if includeNotes, let notes = step.notes, !notes.isEmpty { text += " — \(notes)" }
         return text
     }
 
