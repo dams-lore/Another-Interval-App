@@ -12,7 +12,7 @@
 ## Écran 1 — Récap avant validation (`01-recap-avant-depart.jpg`)
 - En-tête : « EMF RX · DARK ZONE · MARDI 10 », titre de la séance.
 - Carte « EVERY 5:00 × 6 SETS » : liste numérotée des étapes par type et répétitions, phrase d'explication (durée totale 30:00, repos = temps gagné, set non fini).
-- Réglages : **Calories** (15 / 20 : niveau), **Départ dans** (10 s / 20 s / 30 s), **Validation** (« 4 taps » = 1 tap par étape, « 1 tap » = 1 tap par set). Texte d'aide : « Un tap à la fin de chaque étape : tu obtiens tes 4 splits par set. Touche n'importe où sur l'écran. »
+- Réglages (décision de Dams, 21/11/2026, après test) : **Départ dans** 5 s ou 10 s ; **intervalle, nombre de sets et valeurs de chaque étape modifiables** (+ / −) avant le départ ; **un seul mode de validation** : un tap par étape, la dernière étape affiche « Fin du set » et mène au repos. Le sélecteur « Calories 15 / 20 » et le choix « 4 taps / 1 tap » de la simulation sont remplacés par ces réglages.
 
 ## Écran 2 — Pendant le set (`02-run-set-en-cours.webp`)
 - Fond vert (mode gym). En haut : Stop · mode (Gym) · temps total.
