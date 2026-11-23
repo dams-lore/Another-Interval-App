@@ -1,6 +1,6 @@
 # T-017 — Sauvegarde locale et historique (app opérationnelle)
 
-- **Statut** : en cours (code écrit, non compilé)
+- **Statut** : à tester (CI verte ; historique conservé après relance confirmé par Dams dans le simulateur le 23/11/2026)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-016

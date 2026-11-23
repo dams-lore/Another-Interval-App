@@ -21,7 +21,7 @@
 | T-014 | Import de séance par photo (killer feature) | P0 | à faire | T-011 |
 | T-015 | WearableGarmin natif (Connect IQ) | P1 | à faire | T-013, T-001 |
 | T-016 | Parcours « Every X × N » : récap, set par set, repos, récap de fin | P0 | à tester | T-014 |
-| T-017 | Sauvegarde locale et historique (app opérationnelle) | P0 | en cours | T-016 |
+| T-017 | Sauvegarde locale et historique (app opérationnelle) | P0 | à tester | T-016 |
 
 ## Idées non encore découpées
 - Finir la refonte design Garmin (après T-001)
