@@ -44,3 +44,5 @@
 ## App native (Tuist / Xcode)
 - Erreurs Xcode « Couldn't load <Package> because it is already opened from another project or workspace » : quitter Xcode (`Cmd+Q`), `tuist generate --no-open`, ouvrir **uniquement** `apple/AnotherInterval.xcworkspace`. Jamais le `.xcodeproj` ni un dossier de package en parallèle.
 - `mise` s'installe avec `curl https://mise.run | sh` (pas besoin de Homebrew) puis `mise activate zsh` dans `~/.zshrc`.
+- Installer l'app native sur l'iPhone **sans compte payant** : Apple ID gratuit (« Personal Team »), iPhone branché en câble, Mode développeur activé, `DEVELOPMENT_TEAM` dans `Secrets.xcconfig` (le réglage fait dans l'interface Xcode est effacé à chaque `tuist generate`). Limites : app valable 7 jours, 3 apps max, pas de TestFlight (compte payant Apple Developer requis).
+- Windows → Mac : tout passe par **GitHub** (commit + push d'une branche depuis Windows, pull sur le Mac). Les secrets (`.env`, clé développeur Garmin `*.der` / `*.pem`) ne passent **jamais** par git : copie manuelle (clé USB ou stockage privé), seulement si nécessaire.

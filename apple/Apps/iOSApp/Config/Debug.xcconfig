@@ -1,4 +1,7 @@
 // Réglages de la version Debug.
-// La clé de développement vient de Secrets.xcconfig (jamais commité, voir Secrets.example.xcconfig).
+// La clé de développement et ton identifiant d'équipe Apple viennent de Secrets.xcconfig
+// (jamais commité, voir Secrets.example.xcconfig).
 ANTHROPIC_API_KEY =
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
 #include? "Secrets.xcconfig"
