@@ -7,13 +7,20 @@ import DesignSystem
 public struct PhotoImportView: View {
     let viewModel: PhotoImportViewModel
     let onStart: (Workout) -> Void
+    let onSave: ((Workout) -> Void)?
     let onClose: () -> Void
 
     @State private var pickerItem: PhotosPickerItem?
 
-    public init(viewModel: PhotoImportViewModel, onStart: @escaping (Workout) -> Void, onClose: @escaping () -> Void) {
+    public init(
+        viewModel: PhotoImportViewModel,
+        onStart: @escaping (Workout) -> Void,
+        onSave: ((Workout) -> Void)? = nil,
+        onClose: @escaping () -> Void
+    ) {
         self.viewModel = viewModel
         self.onStart = onStart
+        self.onSave = onSave
         self.onClose = onClose
     }
 
@@ -110,6 +117,14 @@ public struct PhotoImportView: View {
                     .font(.system(size: 18, weight: .bold)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity).frame(height: 56)
                     .background(DS.Colors.accentGreen, in: RoundedRectangle(cornerRadius: DS.Radius.medium))
+            }
+            if let onSave {
+                Button { onSave(workout) } label: {
+                    Text("Enregistrer sans lancer")
+                        .font(.system(size: 16, weight: .semibold)).foregroundStyle(DS.Colors.textPrimary)
+                        .frame(maxWidth: .infinity).frame(height: 48)
+                        .background(DS.Colors.glass, in: RoundedRectangle(cornerRadius: DS.Radius.medium))
+                }
             }
             Button("Recommencer", action: { pickerItem = nil; viewModel.reset() })
                 .font(.system(size: 15, weight: .semibold)).foregroundStyle(DS.Colors.textSecondary)

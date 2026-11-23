@@ -8,6 +8,7 @@ let project = Project(
         .local(path: "../../Packages/TimerEngine"),
         .local(path: "../../Packages/DesignSystem"),
         .local(path: "../../Packages/Platform"),
+        .local(path: "../../Packages/TestSupport"),
         .local(path: "../../Packages/Backend"),
         .local(path: "../../Packages/DataLayer"),
         .local(path: "../../Packages/Features/FeaturePhotoImport"),
@@ -46,7 +47,10 @@ let project = Project(
             bundleId: "app.anotherinterval.ios.tests",
             deploymentTargets: iOSDeploymentTarget,
             sources: ["Tests/**"],
-            dependencies: [.target(name: "AnotherInterval")],
+            dependencies: [
+                .target(name: "AnotherInterval"),
+                .package(product: "TestSupport", type: .runtime),
+            ],
             settings: strictSettings
         ),
     ]

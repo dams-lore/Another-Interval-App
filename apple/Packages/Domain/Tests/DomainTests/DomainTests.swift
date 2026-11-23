@@ -133,3 +133,25 @@ import Domain
         #expect(result(0, 400).rest == 0)
     }
 }
+
+@Suite struct SessionRecordTests {
+    private let workout = Workout(name: "DARK ZONE", format: .emom, steps: [Step(type: .reps, movement: "Row", value: 20)], rounds: 6, intervalSeconds: 300)
+
+    @Test func summaryExistsOnlyWithSetResults() {
+        let plain = SessionRecord(workout: workout, startedAt: Date(), duration: 600)
+        #expect(plain.summary == nil)
+        let withSets = SessionRecord(
+            workout: workout, startedAt: Date(), duration: 1800,
+            setResults: [SetResult(setIndex: 0, completionTime: 190, interval: 300), SetResult(setIndex: 1, completionTime: nil, interval: 300)]
+        )
+        #expect(withSets.completedSets == 1)
+        #expect(withSets.summary?.totalSets == 6)
+        #expect(withSets.summary?.bestTime == 190)
+    }
+
+    @Test func recordRoundTripsThroughJSON() throws {
+        let record = SessionRecord(workout: workout, startedAt: Date(timeIntervalSince1970: 1_700_000_000), duration: 900, roundsCompleted: 3)
+        let decoded = try JSONDecoder().decode(SessionRecord.self, from: JSONEncoder().encode(record))
+        #expect(decoded == record)
+    }
+}

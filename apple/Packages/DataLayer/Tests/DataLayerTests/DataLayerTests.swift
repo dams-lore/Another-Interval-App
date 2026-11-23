@@ -114,3 +114,90 @@ import TestSupport
         }
     }
 }
+
+@Suite struct FileRepositoryTests {
+    private func makeDirectory() -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("AnotherIntervalTests-\(UUID().uuidString)")
+    }
+
+    private func workout(_ name: String, updated: TimeInterval = 0) -> Workout {
+        Workout(
+            name: name, format: .forTime, steps: [Step(type: .reps, movement: "Squats", value: 10)],
+            createdAt: Date(timeIntervalSince1970: updated), updatedAt: Date(timeIntervalSince1970: updated)
+        )
+    }
+
+    @Test func savedWorkoutsSurviveARestart() async throws {
+        let directory = makeDirectory()
+        let first = FileWorkoutRepository(directory: directory)
+        try await first.save(workout("Fran"))
+        let second = FileWorkoutRepository(directory: directory)   // « redémarrage » : nouvelle instance
+        let loaded = try await second.all()
+        #expect(loaded.map(\.name) == ["Fran"])
+    }
+
+    @Test func savingTwiceUpdatesInsteadOfDuplicating() async throws {
+        let repository = FileWorkoutRepository(directory: makeDirectory())
+        var item = workout("Fran")
+        try await repository.save(item)
+        item.name = "Fran (RX)"
+        try await repository.save(item)
+        let loaded = try await repository.all()
+        #expect(loaded.count == 1)
+        #expect(loaded.first?.name == "Fran (RX)")
+    }
+
+    @Test func mostRecentWorkoutComesFirst() async throws {
+        let repository = FileWorkoutRepository(directory: makeDirectory())
+        try await repository.save(workout("Ancienne", updated: 100))
+        try await repository.save(workout("Récente", updated: 200))
+        #expect(try await repository.all().map(\.name) == ["Récente", "Ancienne"])
+    }
+
+    @Test func deletedWorkoutsDisappearFromTheList() async throws {
+        let repository = FileWorkoutRepository(directory: makeDirectory())
+        let item = workout("Fran")
+        try await repository.save(item)
+        try await repository.delete(id: item.id)
+        #expect(try await repository.all().isEmpty)
+    }
+
+    @Test func sessionsAreStoredNewestFirst() async throws {
+        let directory = makeDirectory()
+        let repository = FileSessionRepository(directory: directory)
+        let base = workout("DARK ZONE")
+        try await repository.save(SessionRecord(workout: base, startedAt: Date(timeIntervalSince1970: 100), duration: 60))
+        try await repository.save(SessionRecord(workout: base, startedAt: Date(timeIntervalSince1970: 200), duration: 90))
+        let loaded = try await FileSessionRepository(directory: directory).all()
+        #expect(loaded.map(\.duration) == [90, 60])
+    }
+
+    @Test func sessionResultsKeepTheirDetails() async throws {
+        let repository = FileSessionRepository(directory: makeDirectory())
+        let split = StepSplit(stepIndex: 0, movement: "Row", duration: 53)
+        let result = SetResult(setIndex: 0, splits: [split], completionTime: 195, interval: 300)
+        try await repository.save(SessionRecord(workout: workout("DARK ZONE"), startedAt: Date(timeIntervalSince1970: 1), duration: 300, setResults: [result]))
+        let loaded = try await repository.all()
+        #expect(loaded.first?.setResults == [result])
+    }
+
+    @Test func aCorruptFileIsSetAsideAndTheListStartsEmpty() async throws {
+        let directory = makeDirectory()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let file = directory.appendingPathComponent("workouts.json")
+        try Data("pas du json".utf8).write(to: file)
+        let repository = FileWorkoutRepository(directory: directory)
+        #expect(try await repository.all().isEmpty)
+        #expect(FileManager.default.fileExists(atPath: file.appendingPathExtension("corrupt").path))
+        try await repository.save(workout("Nouvelle"))       // on peut ré-écrire sans perdre l'ancien fichier
+        #expect(try await repository.all().count == 1)
+    }
+
+    @Test func deleteSessionRemovesIt() async throws {
+        let repository = FileSessionRepository(directory: makeDirectory())
+        let record = SessionRecord(workout: workout("A"), startedAt: Date(), duration: 10)
+        try await repository.save(record)
+        try await repository.delete(id: record.id)
+        #expect(try await repository.all().isEmpty)
+    }
+}

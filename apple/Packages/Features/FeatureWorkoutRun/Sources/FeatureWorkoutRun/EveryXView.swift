@@ -18,7 +18,7 @@ public struct EveryXView: View {
             if !model.hasStarted {
                 EveryXSetupView(model: model, onClose: onClose)
             } else if model.isFinished {
-                EveryXSummaryView(model: model, onClose: onClose)
+                EveryXSummaryView(workout: model.workout, summary: model.summary, shareText: model.shareText, onClose: onClose)
             } else {
                 EveryXRunView(model: model, onClose: onClose)
             }
@@ -344,17 +344,26 @@ struct EveryXRunView: View {
 
 // MARK: - 4. Récap de fin
 
-struct EveryXSummaryView: View {
-    let model: EveryXViewModel
+/// Récap de fin d'une séance Every X (pendant la séance et depuis l'historique).
+public struct EveryXSummaryView: View {
+    let workout: Workout
+    let summary: EveryXSummary
+    let shareText: String
     let onClose: () -> Void
 
-    var body: some View {
-        let summary = model.summary
+    public init(workout: Workout, summary: EveryXSummary, shareText: String, onClose: @escaping () -> Void) {
+        self.workout = workout
+        self.summary = summary
+        self.shareText = shareText
+        self.onClose = onClose
+    }
+
+    public var body: some View {
         ZStack {
             DS.Colors.backgroundGradient.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text("\(model.workout.name.uppercased()) TERMINÉE")
+                    Text("\(workout.name.uppercased()) TERMINÉE")
                         .font(.system(size: 15, weight: .bold)).tracking(2).foregroundStyle(DS.Colors.accentPurple)
                     HStack(alignment: .lastTextBaseline, spacing: 12) {
                         Text("\(summary.completedCount)/\(summary.totalSets)")
@@ -369,10 +378,10 @@ struct EveryXSummaryView: View {
                     }
                     setBySet(summary)
                     HStack(spacing: 12) {
-                        ShareLink(item: model.shareText) {
+                        ShareLink(item: shareText) {
                             actionLabel("Copier le résultat")
                         }
-                        Button(action: onClose) { actionLabel("Nouvelle séance") }
+                        Button(action: onClose) { actionLabel("Terminer") }
                     }
                 }
                 .padding(20)
@@ -397,7 +406,7 @@ struct EveryXSummaryView: View {
 
     private var movementNames: [String] {
         var seen: [String] = []
-        for step in model.steps where !seen.contains(step.movement) { seen.append(step.movement) }
+        for step in workout.steps where !seen.contains(step.movement) { seen.append(step.movement) }
         return seen
     }
 

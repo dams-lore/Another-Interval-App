@@ -35,11 +35,20 @@ public final class EveryXViewModel {
     private var detector = RunEventDetector()
     private let clock: any AppClock
     private let guidance: (any GuidanceOutput)?
+    private let onFinished: (@MainActor (SessionRecord) -> Void)?
+    private var startedAt: Date?
 
-    public init(workout: Workout, clock: any AppClock = SystemClock(), guidance: (any GuidanceOutput)? = nil) {
+    /// `onFinished` est appelé une seule fois, à la fin de la séance, avec le résultat à enregistrer.
+    public init(
+        workout: Workout,
+        clock: any AppClock = SystemClock(),
+        guidance: (any GuidanceOutput)? = nil,
+        onFinished: (@MainActor (SessionRecord) -> Void)? = nil
+    ) {
         self.workout = workout
         self.clock = clock
         self.guidance = guidance
+        self.onFinished = onFinished
     }
 
     // MARK: - Données de la séance
@@ -81,6 +90,7 @@ public final class EveryXViewModel {
     public func start() {
         guard !hasStarted else { return }
         var newEngine = TimerEngine(configuration: RunConfiguration(workout: workout, countdown: countdown))
+        startedAt = clock.now()
         newEngine.start(at: clock.now())
         engine = newEngine
         hasStarted = true
@@ -148,6 +158,10 @@ public final class EveryXViewModel {
         if state.roundIndex != trackedSet {
             // Un nouveau set démarre (automatiquement, même si le précédent n'est pas fini).
             finalizeCurrentSet()
+            // Sets entièrement écoulés pendant que l'app était en arrière-plan : non finis.
+            for skipped in (trackedSet + 1)..<max(trackedSet + 1, state.roundIndex) {
+                results.append(SetResult(setIndex: skipped, completionTime: nil, interval: interval))
+            }
             trackedSet = state.roundIndex
             currentSplits = []
             currentStepIndex = 0
@@ -157,7 +171,19 @@ public final class EveryXViewModel {
         if state.phase == .finished, !finalized {
             finalizeCurrentSet()
             finalized = true
+            reportResult()
         }
+    }
+
+    /// Enregistre la séance seulement si l'athlète a vraiment fait quelque chose.
+    private func reportResult() {
+        let didSomething = results.contains { $0.isCompleted || !$0.splits.isEmpty }
+        guard didSomething, let startedAt else { return }
+        let record = SessionRecord(
+            workout: workout, startedAt: startedAt, duration: state.elapsed,
+            roundsCompleted: results.filter(\.isCompleted).count, setResults: summary.results
+        )
+        onFinished?(record)
     }
 
     private func finalizeCurrentSet() {
@@ -223,16 +249,7 @@ public final class EveryXViewModel {
     public var summary: EveryXSummary { EveryXSummary(results: results.sorted { $0.setIndex < $1.setIndex }, totalSets: setCount) }
 
     /// Texte à copier : « Copier le résultat ».
-    public var shareText: String {
-        var lines = ["\(workout.name) — \(summary.completedCount)/\(setCount) sets"]
-        if let average = summary.averageTime { lines.append("Moyenne \(RunFormat.short(average))") }
-        for result in summary.results {
-            let time = result.completionTime.map { RunFormat.short($0) } ?? "non fini"
-            let splits = result.splits.map { "\($0.movement.lowercased()) \(RunFormat.short($0.duration))" }.joined(separator: " · ")
-            lines.append("Set \(result.setIndex + 1) : \(time)" + (splits.isEmpty ? "" : " (\(splits))"))
-        }
-        return lines.joined(separator: "\n")
-    }
+    public var shareText: String { ResultText.share(workout: workout, summary: summary) }
 
     /// Phrase d'explication du récap de départ.
     public var explanationText: String {

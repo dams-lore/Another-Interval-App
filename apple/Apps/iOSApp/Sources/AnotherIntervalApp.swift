@@ -22,16 +22,52 @@ enum AppConfig {
     }
 }
 
-/// Écran temporaire : séances de démo + import par photo (la vraie navigation et le stockage viennent ensuite).
+/// Écran principal : mes séances (démo + importées + enregistrées) et l'historique.
 struct RootView: View {
+    @State private var store: LibraryStore
     @State private var selected: Workout?
-    @State private var imported: [Workout] = []
     @State private var showImport = false
     @State private var importModel = PhotoImportViewModel(
         service: PhotoWorkoutImportService(client: AnthropicImportClient(apiKey: AppConfig.anthropicKey))
     )
 
+    init(store: LibraryStore = .live()) {
+        _store = State(initialValue: store)
+    }
+
     var body: some View {
+        TabView {
+            workoutsTab
+                .tabItem { Label("Séances", systemImage: "list.bullet") }
+            HistoryView(store: store)
+                .tabItem { Label("Historique", systemImage: "clock") }
+        }
+        .task { await store.load() }
+        .sheet(isPresented: $showImport) {
+            PhotoImportView(
+                viewModel: importModel,
+                onStart: { workout in
+                    Task { await store.save(workout) }
+                    showImport = false
+                    selected = workout
+                },
+                onSave: { workout in
+                    Task { await store.save(workout) }
+                    showImport = false
+                },
+                onClose: { showImport = false }
+            )
+        }
+        .fullScreenCover(item: $selected) { workout in
+            RunHost(
+                workout: workout,
+                onSessionFinished: { record in Task { await store.record(record) } },
+                onClose: { selected = nil }
+            )
+        }
+    }
+
+    private var workoutsTab: some View {
         NavigationStack {
             List {
                 Section {
@@ -43,40 +79,37 @@ struct RootView: View {
                             .font(.headline)
                     }
                 }
-                if !imported.isEmpty {
-                    Section("Importées") { rows(imported) }
+                Section("Mes séances") {
+                    ForEach(store.workouts) { workout in
+                        Button { selected = workout } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(workout.name).font(.headline).foregroundStyle(.primary)
+                                Text(Self.subtitle(of: workout)).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .onDelete { offsets in
+                        let doomed = offsets.map { store.workouts[$0] }
+                        Task { for workout in doomed { await store.delete(workout) } }
+                    }
                 }
-                Section("Séances de démo") { rows(DemoWorkout.all) }
             }
             .navigationTitle("Another Interval")
         }
-        .sheet(isPresented: $showImport) {
-            PhotoImportView(
-                viewModel: importModel,
-                onStart: { workout in
-                    imported.insert(workout, at: 0)
-                    showImport = false
-                    selected = workout
-                },
-                onClose: { showImport = false }
-            )
-        }
-        .fullScreenCover(item: $selected) { workout in
-            RunHost(workout: workout) { selected = nil }
-        }
     }
 
-    private func rows(_ workouts: [Workout]) -> some View {
-        ForEach(workouts) { workout in
-            Button {
-                selected = workout
-            } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(workout.name).font(.headline)
-                    Text(workout.format.rawValue.uppercased())
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-            }
+    /// Une ligne de description : « Every 5:00 × 6 · 4 étapes », « AMRAP 12 min »…
+    static func subtitle(of workout: Workout) -> String {
+        switch workout.format {
+        case .emom:
+            let interval = RunFormat.short(workout.intervalSeconds ?? 60)
+            return "Every \(interval) × \(workout.rounds ?? 1) · \(workout.steps.count) étapes"
+        case .amrap:
+            return "AMRAP \(Int((workout.capTime ?? 0) / 60)) min"
+        case .forTime:
+            return "For Time" + (workout.capTime.map { " · cap \(Int($0 / 60)) min" } ?? "")
+        case .intervals:
+            return "Fractionné · \(workout.rounds ?? 1) tours · \(workout.steps.count) blocs"
         }
     }
 }
@@ -89,9 +122,9 @@ struct RunHost: View {
     private let isEveryX: Bool
     let onClose: () -> Void
 
-    init(workout: Workout, onClose: @escaping () -> Void) {
-        _runModel = State(initialValue: RunViewModel(workout: workout, guidance: SystemGuidanceOutput()))
-        _everyModel = State(initialValue: EveryXViewModel(workout: workout, guidance: SystemGuidanceOutput()))
+    init(workout: Workout, onSessionFinished: @escaping @MainActor (SessionRecord) -> Void, onClose: @escaping () -> Void) {
+        _runModel = State(initialValue: RunViewModel(workout: workout, guidance: SystemGuidanceOutput(), onFinished: onSessionFinished))
+        _everyModel = State(initialValue: EveryXViewModel(workout: workout, guidance: SystemGuidanceOutput(), onFinished: onSessionFinished))
         isEveryX = workout.format == .emom && !workout.steps.isEmpty
         self.onClose = onClose
     }

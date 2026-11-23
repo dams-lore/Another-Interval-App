@@ -1,6 +1,6 @@
 # T-016 — Parcours « Every X × N » (récap, set par set, repos, récap de fin)
 
-- **Statut** : en cours (code écrit, non compilé)
+- **Statut** : à tester (validé dans le simulateur par Dams le 21/11/2026, récap de fin à confirmer)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-014

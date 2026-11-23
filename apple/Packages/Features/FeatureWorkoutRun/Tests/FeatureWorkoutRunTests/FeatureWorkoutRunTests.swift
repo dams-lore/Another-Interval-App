@@ -165,6 +165,35 @@ import TestSupport
     }
 }
 
+@MainActor @Suite struct RunReportTests {
+    @Test func aRunLongEnoughIsReportedOnce() {
+        let clock = TestClock()
+        let reported = ReportCollector()
+        let workout = Workout(name: "Fran", format: .forTime, steps: [Step(type: .reps, movement: "Thrusters", value: 21)])
+        let model = RunViewModel(workout: workout, clock: clock, countdown: 0, onFinished: { reported.items.append($0) })
+        model.start()
+        clock.advance(by: 120)
+        model.refresh()
+        model.completeRound()
+        model.stop()
+        model.refresh()
+        #expect(reported.items.count == 1)
+        #expect(reported.items.first?.duration == 120)
+        #expect(reported.items.first?.roundsCompleted == 1)
+    }
+
+    @Test func aVeryShortRunIsNotReported() {
+        let clock = TestClock()
+        let reported = ReportCollector()
+        let workout = Workout(name: "Fran", format: .forTime, steps: [Step(type: .reps, movement: "Thrusters", value: 21)])
+        let model = RunViewModel(workout: workout, clock: clock, countdown: 0, onFinished: { reported.items.append($0) })
+        model.start()
+        clock.advance(by: 2)
+        model.stop()
+        #expect(reported.items.isEmpty)
+    }
+}
+
 @MainActor @Suite struct RunGuidanceTests {
     private func makeModel(_ clock: TestClock, _ guidance: RecordingGuidanceOutput) -> RunViewModel {
         let workout = Workout(

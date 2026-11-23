@@ -46,3 +46,17 @@ public enum StepFormat {
         value == value.rounded() ? String(Int(value)) : String(value)
     }
 }
+
+/// Texte du résultat d'une séance Every X (copie / partage), utilisable aussi depuis l'historique.
+public enum ResultText {
+    public static func share(workout: Workout, summary: EveryXSummary) -> String {
+        var lines = ["\(workout.name) — \(summary.completedCount)/\(summary.totalSets) sets"]
+        if let average = summary.averageTime { lines.append("Moyenne \(RunFormat.short(average))") }
+        for result in summary.results {
+            let time = result.completionTime.map { RunFormat.short($0) } ?? "non fini"
+            let splits = result.splits.map { "\($0.movement.lowercased()) \(RunFormat.short($0.duration))" }.joined(separator: " · ")
+            lines.append("Set \(result.setIndex + 1) : \(time)" + (splits.isEmpty ? "" : " (\(splits))"))
+        }
+        return lines.joined(separator: "\n")
+    }
+}

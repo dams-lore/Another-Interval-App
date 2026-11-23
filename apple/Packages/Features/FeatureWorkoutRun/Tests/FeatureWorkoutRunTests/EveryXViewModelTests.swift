@@ -216,4 +216,45 @@ import TestSupport
         #expect(cues.filter { $0 == .stepDone }.count == 3)
         #expect(cues.filter { $0 == .setDone }.count == 1)
     }
+
+    @Test func finishedSessionIsReportedOnceWithItsSetResults() {
+        let clock = TestClock()
+        let reported = ReportCollector()
+        let model = EveryXViewModel(workout: workout(), clock: clock, onFinished: { reported.items.append($0) })
+        model.countdown = 0
+        model.start()
+        for seconds in [53.0, 40, 60, 42] { tap(model, clock, after: seconds) }
+        clock.advance(by: 1_000)
+        model.refresh()
+        model.refresh()
+        #expect(reported.items.count == 1)
+        #expect(reported.items.first?.setResults.count == 3)
+        #expect(reported.items.first?.completedSets == 1)
+        #expect(reported.items.first?.workout.name == "DARK ZONE")
+    }
+
+    @Test func aSessionWithoutAnyTapIsNotRecorded() {
+        let clock = TestClock()
+        let reported = ReportCollector()
+        let model = EveryXViewModel(workout: workout(), clock: clock, onFinished: { reported.items.append($0) })
+        model.countdown = 0
+        model.start()
+        clock.advance(by: 20)
+        model.stop()
+        #expect(reported.items.isEmpty)
+    }
+
+    @Test func shareTextMatchesTheSharedFormatter() {
+        let clock = TestClock()
+        let model = makeModel(clock)
+        model.start()
+        tap(model, clock, after: 30)
+        model.stop()
+        #expect(model.shareText == ResultText.share(workout: model.workout, summary: model.summary))
+    }
+}
+
+/// Reçoit les séances terminées pendant les tests.
+@MainActor final class ReportCollector {
+    var items: [SessionRecord] = []
 }

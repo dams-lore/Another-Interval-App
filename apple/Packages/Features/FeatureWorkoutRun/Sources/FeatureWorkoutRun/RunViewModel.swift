@@ -19,16 +19,21 @@ public final class RunViewModel {
     private var detector = RunEventDetector()
     private let clock: any AppClock
     private let guidance: (any GuidanceOutput)?
+    private let onFinished: (@MainActor (SessionRecord) -> Void)?
+    private var startedAt: Date?
+    private var reported = false
 
     public init(
         workout: Workout,
         clock: any AppClock = SystemClock(),
         countdown: TimeInterval = 10,
-        guidance: (any GuidanceOutput)? = nil
+        guidance: (any GuidanceOutput)? = nil,
+        onFinished: (@MainActor (SessionRecord) -> Void)? = nil
     ) {
         self.workout = workout
         self.clock = clock
         self.guidance = guidance
+        self.onFinished = onFinished
         self.engine = TimerEngine(configuration: RunConfiguration(workout: workout, countdown: countdown))
     }
 
@@ -40,6 +45,15 @@ public final class RunViewModel {
         for event in detector.events(for: state) {
             guidance?.play(Self.cue(for: event))
         }
+        reportIfFinished()
+    }
+
+    /// Enregistre la séance une seule fois, si elle a duré plus de quelques secondes.
+    private func reportIfFinished() {
+        guard state.phase == .finished, !reported, let startedAt else { return }
+        reported = true
+        guard state.elapsed >= 5 else { return }
+        onFinished?(SessionRecord(workout: workout, startedAt: startedAt, duration: state.elapsed, roundsCompleted: state.roundsCompleted))
     }
 
     static func cue(for event: RunEvent) -> GuidanceCue {
@@ -53,6 +67,7 @@ public final class RunViewModel {
     }
 
     public func start() {
+        startedAt = clock.now()
         engine.start(at: clock.now())
         refresh()
     }
