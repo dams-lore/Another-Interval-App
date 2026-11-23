@@ -31,6 +31,7 @@ public struct RunView: View {
             }
             .padding(.bottom, 12)
         }
+        .keepScreenAwake()
         .task { @MainActor in
             // Rafraîchit l'affichage ~5 fois par seconde ; le temps réel vient des horodatages du moteur.
             while !Task.isCancelled {
