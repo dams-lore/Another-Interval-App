@@ -187,6 +187,7 @@ struct EveryXRunView: View {
         // Taper n'importe où sur l'écran valide l'étape (les boutons gardent la priorité).
         .contentShape(Rectangle())
         .onTapGesture { model.tap() }
+        .keepScreenAwake()
     }
 
     private func topBar(resting: Bool, ink: Color) -> some View {
