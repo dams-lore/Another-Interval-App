@@ -28,6 +28,9 @@ Cartes : effet verre (fond blanc semi-transparent + bordure claire).
 - Timer central = temps du **bloc en cours** ; timer du haut = temps total.
 - Timer SVG compact : même `fontSize` minutes/secondes, minutes en 700, secondes en 300 (alignement des `TSpan`).
 
+## Parcours « Every X × N »
+- Référence unique : `docs/design/every-x-run.md` (maquettes dans `docs/design/reference/every-x/`) : récap avant départ, set en cours, repos, récap de fin.
+
 ## Figma
 - Fichier : `akSiGekTw8lwC4Hr0UQJBp` — « Another Intrval App ».
 - Le code est la source de vérité : Figma reproduit l'app, pas l'inverse (sauf écran nouveau conçu d'abord dans Figma).

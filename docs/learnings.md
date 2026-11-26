@@ -37,3 +37,13 @@
 - Constructeurs Monkey C : annoter correctement le type de retour.
 - Utiliser `WatchUi.InputDelegate` (`WatchUi.TouchScreen` n'existe pas).
 - Gérer explicitement la nullabilité.
+
+## Permissions Claude Code
+- 21/11/2026 : la règle `"Bash(git push:*)"` de `permissions.deny` (`.claude/settings.json`) a été **retirée temporairement** à la demande de Dams, pour que Claude pousse sa branche `claude/*` pendant le dev natif. **À remettre plus tard au besoin** (`git push --force` et `git reset --hard` restent interdits). Toujours jamais de push direct sur `master` : tout passe par PR.
+
+## App native (Tuist / Xcode)
+- Erreurs Xcode « Couldn't load <Package> because it is already opened from another project or workspace » : quitter Xcode (`Cmd+Q`), `tuist generate --no-open`, ouvrir **uniquement** `apple/AnotherInterval.xcworkspace`. Jamais le `.xcodeproj` ni un dossier de package en parallèle.
+- `mise` s'installe avec `curl https://mise.run | sh` (pas besoin de Homebrew) puis `mise activate zsh` dans `~/.zshrc`.
+- Installer l'app native sur l'iPhone **sans compte payant** : Apple ID gratuit (« Personal Team »), iPhone branché en câble, Mode développeur activé, `DEVELOPMENT_TEAM` dans `Secrets.xcconfig` (le réglage fait dans l'interface Xcode est effacé à chaque `tuist generate`). Limites : app valable 7 jours, 3 apps max, pas de TestFlight (compte payant Apple Developer requis).
+- Premier lancement sur l'iPhone : message « Développeur non approuvé » → Réglages > Général > VPN et gestion de l'appareil > App de développeur > Faire confiance (iPhone connecté à Internet).
+- Windows → Mac : tout passe par **GitHub** (commit + push d'une branche depuis Windows, pull sur le Mac). Les secrets (`.env`, clé développeur Garmin `*.der` / `*.pem`) ne passent **jamais** par git : copie manuelle (clé USB ou stockage privé), seulement si nécessaire.

@@ -1,0 +1,59 @@
+name: iOS (natif)
+
+# Tourne uniquement quand le natif change. Runner macOS (minutes facturées sur repo privé : voir T-010).
+on:
+  pull_request:
+    paths: ["apple/**", ".github/workflows/ios.yml"]
+  push:
+    branches: [master]
+    paths: ["apple/**", ".github/workflows/ios.yml"]
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  packages:
+    name: swift test par package
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests de chaque package (compilation isolée = règle de dépendances)
+        working-directory: apple/Packages
+        run: |
+          set -e
+          for manifest in $(find . -name Package.swift -not -path "*/.build/*"); do
+            pkg=$(dirname "$manifest")
+            echo "::group::$pkg"
+            (cd "$pkg" && swift test)
+            echo "::endgroup::"
+          done
+
+  app:
+    name: Génération Tuist + build + tests app
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+        with:
+          working_directory: apple
+      - name: Générer le projet
+        working-directory: apple
+        run: |
+          tuist install
+          tuist generate --no-open
+      - name: Build + tests (simulateur)
+        working-directory: apple
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -workspace AnotherInterval.xcworkspace \
+            -scheme AnotherInterval \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -resultBundlePath build/result.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log || STATUS=$?
+          echo "=== RÉSUMÉ DES ERREURS ==="
+          grep -nE "error:|Failing tests|failed|Testing failed|Unable to find|TEST FAILED|✘" build.log | cut -c1-400 | head -40 || true
+          exit ${STATUS:-0}

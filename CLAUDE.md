@@ -26,6 +26,7 @@ Toutes les commandes npm / npx / expo / git se lancent depuis ce dossier, jamais
 
 ## Façon de travailler
 - Dams est product owner, pas développeur : fais les modifications toi-même, ne lui demande jamais de copier-coller du code.
+- **Commandes pour Dams (Mac, zsh)** : il n'est pas développeur, l'accompagner pas à pas sur le terminal, GitHub Desktop et Xcode. Chaque bloc de commandes doit être **copiable tel quel, sans rien modifier** : toujours commencer par `cd ~/Documents/GitHub/Another-Interval-App/apple` (ou le bon sous-dossier), jamais « remplace le chemin », jamais supposer le dossier courant. Une commande par bloc de code. Dire ce qu'il doit voir à l'écran et quoi me renvoyer.
 - Réponds en français, court, direct. Challenge ses idées quand c'est justifié.
 - **Une tâche = un ticket** (`docs/tickets/`), avec un critère de fin vérifiable sur l'iPhone. Utilise `/ticket`.
 - Travaille sur une branche `claude/<ticket>-<slug>`, jamais directement sur `master`.
@@ -55,9 +56,16 @@ Toutes les commandes npm / npx / expo / git se lancent depuis ce dossier, jamais
 ## Index docs/
 - `docs/product.md` — vision, cible, freemium, différenciateurs, interval score
 - `docs/design-system.md` — tokens Liquid Glass, polices, mode gym, règles Figma
+- `docs/architecture.md` — spec technique de l'app native (Swift + Supabase), à valider
 - `docs/roadmap.md` — phases, état réel, critères de fin
 - `docs/learnings.md` — toutes les règles apprises (« ne pas re-débattre »)
 - `docs/garmin.md` — app Connect IQ (Vivoactive 5), protocole iPhone ↔ montre
 - `docs/integrations.md` — Anthropic API, Codemagic/EAS, Figma, Notion, Webflow
 - `docs/besoins-internet.md` — besoins Internet (comptes, sync, IA, abonnement), contraintes Apple, architecture backend
 - `docs/tickets/` — backlog, un fichier par ticket
+
+## App native (en cours — T-009 / T-010)
+- Code Swift dans `apple/` (spec : `docs/architecture.md`). iOS 18, Swift 6 strict, projet Xcode **généré par Tuist** (jamais commité).
+- Sur le Mac, depuis `apple/` : `mise install` ; `tuist install` ; `tuist generate` ; tests d'un package : `cd Packages/<Nom>` puis `swift test`.
+- Claude ne peut pas compiler le Swift (session Linux) : Dams compile sur le Mac et colle les erreurs.
+- L'app Expo reste la référence jusqu'à la parité (spec § 13).

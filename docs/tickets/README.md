@@ -13,6 +13,15 @@
 | T-005 | Section « Mes scores » dans Profile | P2 | à faire | T-003 |
 | T-007 | Conventions PR + tests unitaires + CI | P1 | à tester | — |
 | T-008 | Corriger les erreurs `tsc` existantes et rendre l'étape CI bloquante | P1 | à faire | T-007 |
+| T-009 | Spec technique de l'app native (Swift + Supabase) | P0 | à tester | — |
+| T-010 | Squelette de l'app native (Tuist + packages + CI) | P0 | à tester | T-009 |
+| T-011 | Domain + TimerEngine (formats, pause, skip, tests) | P0 | fait | T-010 |
+| T-012 | Écran de séance compact + gym (Figma Run) | P0 | fait | T-011 |
+| T-013 | Bips et haptics pendant la séance | P0 | fait | T-012 |
+| T-014 | Import de séance par photo (killer feature) | P0 | fait | T-011 |
+| T-015 | WearableGarmin natif (Connect IQ) | P1 | à faire | T-013, T-001 |
+| T-016 | Parcours « Every X × N » : récap, set par set, repos, récap de fin | P0 | fait | T-014 |
+| T-017 | Sauvegarde locale et historique (app opérationnelle) | P0 | fait | T-016 |
 
 ## Idées non encore découpées
 - Finir la refonte design Garmin (après T-001)

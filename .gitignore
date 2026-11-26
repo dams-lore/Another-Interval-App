@@ -51,3 +51,14 @@ watch-garmin/bin/
 .claude/worktrees/objective-easley-6b08d9/
 
 .claude/worktrees/
+
+# Natif Apple (projet généré par Tuist : jamais commité)
+*.xcodeproj
+*.xcworkspace
+Derived/
+.build/
+.swiftpm/
+apple/Tuist/.build/
+
+# Clé de développement de l'app native (jamais commitée)
+apple/Apps/iOSApp/Config/Secrets.xcconfig
