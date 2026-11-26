@@ -1,6 +1,6 @@
 # T-016 — Parcours « Every X × N » (récap, set par set, repos, récap de fin)
 
-- **Statut** : à tester (set « non fini » validé sur l'iPhone le 26/11/2026 ; restent les 4 écrans et le récap de fin)
+- **Statut** : fait (validé sur l'iPhone par Dams le 26/11/2026)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-014
@@ -19,5 +19,5 @@ Les séances « Every 5:00 × 6 sets » sont le cas d'usage réel de Dams. La si
 
 ## Critère de fin (sur le Mac / iPhone)
 - [x] `swift test` vert (Domain, FeatureWorkoutRun, Platform).
-- [ ] La séance DARK ZONE de la liste de démo suit les 4 écrans de la simulation.
+- [x] La séance DARK ZONE de la liste de démo suit les 4 écrans de la simulation.
 - [x] Un set non fini à 5:00 est noté « non fini » et le set suivant démarre.
