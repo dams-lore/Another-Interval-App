@@ -1,6 +1,6 @@
 # T-016 — Parcours « Every X × N » (récap, set par set, repos, récap de fin)
 
-- **Statut** : à tester (validé dans le simulateur par Dams le 21/11/2026, récap de fin à confirmer)
+- **Statut** : à tester (set « non fini » validé sur l'iPhone le 26/11/2026 ; restent les 4 écrans et le récap de fin)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-014
@@ -18,6 +18,6 @@ Les séances « Every 5:00 × 6 sets » sont le cas d'usage réel de Dams. La si
 - Sélecteur de niveau « Calories 15 / 20 » (variantes RX), format « Failure », courbe de FC et zones (écran 5), sauvegarde de l'historique, montre Garmin.
 
 ## Critère de fin (sur le Mac / iPhone)
-- [ ] `swift test` vert (Domain, FeatureWorkoutRun, Platform).
+- [x] `swift test` vert (Domain, FeatureWorkoutRun, Platform).
 - [ ] La séance DARK ZONE de la liste de démo suit les 4 écrans de la simulation.
-- [ ] Un set non fini à 5:00 est noté « non fini » et le set suivant démarre.
+- [x] Un set non fini à 5:00 est noté « non fini » et le set suivant démarre.

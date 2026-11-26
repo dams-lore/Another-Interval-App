@@ -1,6 +1,6 @@
 # T-014 — Import de séance par photo (killer feature)
 
-- **Statut** : en cours (option A écrite, non compilée)
+- **Statut** : à tester (import photo validé sur l'iPhone le 26/11/2026 ; restent le lancement après import et les cas d'erreur)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-011
@@ -24,9 +24,12 @@ Différenciateur n°1 du produit : photographier le tableau / la feuille du coac
 - La séance est aussi dans la liste de démo (sans IA).
 
 ## Critère de fin
-- [ ] `swift test` vert (Backend, DataLayer, FeaturePhotoImport).
+- [x] `swift test` vert (Backend, DataLayer, FeaturePhotoImport).
 - [ ] Dans le simulateur (photo glissée dans l'app Photos) : photo → séance affichée → « Lancer la séance » ouvre l'écran de séance avec les bons blocs.
 - [ ] Cas d'erreur lisibles : sans clé, photo illisible, hors ligne.
+
+## Retour iPhone (26/11/2026, Dams)
+- Photo → blocs de la séance corrects.
 
 ## Hors périmètre
 - Caméra directe, consentement IA, quota gratuit, stockage de la séance (étapes suivantes).

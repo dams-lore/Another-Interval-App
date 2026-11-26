@@ -1,6 +1,6 @@
 # T-017 — Sauvegarde locale et historique (app opérationnelle)
 
-- **Statut** : à tester (CI verte ; historique conservé après relance confirmé par Dams dans le simulateur le 23/11/2026)
+- **Statut** : à tester (sauvegarde et suppression validées sur l'iPhone le 26/11/2026 ; reste la réouverture du récap)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-016
@@ -21,7 +21,7 @@ Pour tester l'app en vrai sur l'iPhone, les séances importées et les résultat
 - Éditeur de séance, records (PR), courbe de FC, synchronisation Supabase, export.
 
 ## Critère de fin (sur le Mac / iPhone)
-- [ ] `swift test` vert (Domain, DataLayer, FeatureWorkoutRun) et tests de l'app.
-- [ ] Une séance importée ou lancée reste dans la liste après fermeture complète de l'app.
+- [x] `swift test` vert (Domain, DataLayer, FeatureWorkoutRun) et tests de l'app.
+- [x] Une séance importée ou lancée reste dans la liste après fermeture complète de l'app.
 - [ ] Une séance terminée apparaît dans l'historique ; son récap set par set se rouvre.
-- [ ] Suppression d'une séance et d'une ligne d'historique.
+- [x] Suppression d'une séance et d'une ligne d'historique.

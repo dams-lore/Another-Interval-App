@@ -1,6 +1,6 @@
 # T-010 — Squelette de l'app native (étape 1 de `docs/architecture.md` § 15)
 
-- **Statut** : à tester (validé sur Mac par Dams le 21/11/2026, reste la CI)
+- **Statut** : à tester (app installée sur l'iPhone par câble le 26/11/2026 ; restent la CI sur la PR et TestFlight)
 - **Priorité** : P0
 - **Type** : chore
 - **Dépend de** : T-009 (spec, PR #4)

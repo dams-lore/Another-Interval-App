@@ -1,6 +1,6 @@
 # T-013 — Bips et haptics pendant la séance
 
-- **Statut** : en cours (code écrit, non compilé)
+- **Statut** : fait (validé sur l'iPhone par Dams le 26/11/2026)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-012
@@ -18,9 +18,9 @@ L'athlète s'entraîne sans regarder l'écran : le son et les vibrations guident
 - `Domain/Guidance.swift` (`GuidanceCue`, protocole `GuidanceOutput`), `TimerEngine/RunEvent.swift` (détecteur, testé), `Platform/SystemGuidanceOutput.swift` + `SineWAV.swift`, `TestSupport/RecordingGuidanceOutput.swift`, `RunViewModel`.
 
 ## Critère de fin (sur l'iPhone, pas le simulateur)
-- [ ] `swift test` vert (Domain, TimerEngine, Platform, FeatureWorkoutRun).
-- [ ] Bip audible à 10 s de la fin d'un bloc, avec de la musique qui continue.
-- [ ] Vibrations perceptibles (compte à rebours, alerte 10 s, fin de bloc).
+- [x] `swift test` vert (Domain, TimerEngine, Platform, FeatureWorkoutRun).
+- [x] Bip audible à 10 s de la fin d'un bloc, avec de la musique qui continue.
+- [x] Vibrations perceptibles (compte à rebours, alerte 10 s, fin de bloc).
 
 ## Hors périmètre
 - Alertes écran verrouillé / Live Activity et notifications locales (ticket suivant).

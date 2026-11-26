@@ -1,6 +1,6 @@
 # T-012 — Écran de séance (compact + gym) — début de l'étape 3
 
-- **Statut** : à tester (testé par Dams dans le simulateur le 21/11/2026, CI verte)
+- **Statut** : à tester (tests verts le 26/11/2026 ; restent pause / Skip, compact ↔ gym et rendu à confirmer sur l'iPhone)
 - **Priorité** : P0
 - **Type** : feat
 - **Dépend de** : T-011
@@ -27,7 +27,7 @@ Figma « Another Intrval App » : `Run — Compact (Intervals)` (19:2) et `Run �
 - Stockage local, éditeur de séance, navigation.
 
 ## Critère de fin (vérifiable sur le Mac)
-- [ ] `swift test` vert dans `FeatureWorkoutRun` et `DesignSystem`.
+- [x] `swift test` vert dans `FeatureWorkoutRun` et `DesignSystem`.
 - [ ] Le simulateur affiche l'écran Run : Démarrer → compte à rebours 10 s → blocs 400m Run / Rest qui s'enchaînent.
 - [ ] Pause, reprise et Skip fonctionnent ; la bascule compact ↔ gym aussi.
 - [ ] Rendu proche des maquettes Figma.
